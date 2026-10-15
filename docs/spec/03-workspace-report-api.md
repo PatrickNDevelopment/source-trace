@@ -12,33 +12,33 @@ Audit     { seq, at, actor, type, from?, to?, note, codes? }
 
 Field rules (strings are measured in code points):
 
-| Field                   | Rule                                                                      |
-| ----------------------- | ------------------------------------------------------------------------- |
-| `schema`                | the integer 1 (`SCHEMA_VERSION` otherwise)                                |
-| `name`                  | string 1..120                                                             |
-| `counters.*`            | integers 0..999,999,999, each >= the largest numeric id of that type      |
-| ids                     | `s_<n>`, `c_<n>`, `e_<n>` with `n` 1..999,999,999 and no leading zero     |
-| `title`                 | string 1..200                                                             |
-| `author`                | string 0..200                                                             |
-| `date`                  | `""` or a real calendar date `YYYY-MM-DD` (Gregorian, leap years)         |
-| `provenance`, `rights`  | string 0..1000                                                            |
-| `url`                   | `""` or string 1..2000 starting with `http://` or `https://`              |
-| `origin` (source)       | `paste`, `file`, `pdf`                                                    |
-| `text` (source)         | normalized and valid per spec 01 (`textProblems` empty)                   |
-| `contentHash`           | equals `contentHash(text)` (`HASH_MISMATCH`)                              |
-| claim `text`            | string 0..2000                                                            |
-| `kind`                  | `factual`, `interpretation`, `disputed`, `fictional_canon`, `creator_inference` |
-| `status`                | the five statuses                                                         |
-| `reviewNote`, note      | string 0..2000 (claim review note) / 0..1000 (evidence note, audit note)  |
-| claim `origin`          | `manual`, `ai_suggestion`                                                 |
-| `label`                 | `support`, `contradiction`, `unknown`                                     |
-| timestamps              | exactly `YYYY-MM-DDTHH:MM:SS.mmmZ`                                         |
-| audit `seq`             | 1, 2, 3, ... contiguous                                                   |
-| audit `at`              | non-decreasing in string order                                            |
-| audit `actor`           | `user` only                                                               |
-| audit `type`            | `created`, `edited`, `evidence_added`, `evidence_removed`, `evidence_labeled`, `note`, `transition`, `approval_refused` |
-| `from`,`to`             | present (statuses) exactly on `transition`; absent otherwise              |
-| `codes`                 | present exactly on `approval_refused`: non-empty, sorted, unique, all known blocker codes |
+| Field                  | Rule                                                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `schema`               | the integer 1 (`SCHEMA_VERSION` otherwise)                                                                              |
+| `name`                 | string 1..120                                                                                                           |
+| `counters.*`           | integers 0..999,999,999, each >= the largest numeric id of that type                                                    |
+| ids                    | `s_<n>`, `c_<n>`, `e_<n>` with `n` 1..999,999,999 and no leading zero                                                   |
+| `title`                | string 1..200                                                                                                           |
+| `author`               | string 0..200                                                                                                           |
+| `date`                 | `""` or a real calendar date `YYYY-MM-DD` (Gregorian, leap years)                                                       |
+| `provenance`, `rights` | string 0..1000                                                                                                          |
+| `url`                  | `""` or string 1..2000 starting with `http://` or `https://`                                                            |
+| `origin` (source)      | `paste`, `file`, `pdf`                                                                                                  |
+| `text` (source)        | normalized and valid per spec 01 (`textProblems` empty)                                                                 |
+| `contentHash`          | equals `contentHash(text)` (`HASH_MISMATCH`)                                                                            |
+| claim `text`           | string 0..2000                                                                                                          |
+| `kind`                 | `factual`, `interpretation`, `disputed`, `fictional_canon`, `creator_inference`                                         |
+| `status`               | the five statuses                                                                                                       |
+| `reviewNote`, note     | string 0..2000 (claim review note) / 0..1000 (evidence note, audit note)                                                |
+| claim `origin`         | `manual`, `ai_suggestion`                                                                                               |
+| `label`                | `support`, `contradiction`, `unknown`                                                                                   |
+| timestamps             | exactly `YYYY-MM-DDTHH:MM:SS.mmmZ`                                                                                      |
+| audit `seq`            | 1, 2, 3, ... contiguous                                                                                                 |
+| audit `at`             | non-decreasing in string order                                                                                          |
+| audit `actor`          | `user` only                                                                                                             |
+| audit `type`           | `created`, `edited`, `evidence_added`, `evidence_removed`, `evidence_labeled`, `note`, `transition`, `approval_refused` |
+| `from`,`to`            | present (statuses) exactly on `transition`; absent otherwise                                                            |
+| `codes`                | present exactly on `approval_refused`: non-empty, sorted, unique, all known blocker codes                               |
 
 An "integer" is a JSON number whose mathematical value is an integer (so `1.0` and `1e0` count);
 booleans are not numbers. Objects must have exactly the listed keys (`from`, `to`, `codes` only where
@@ -88,16 +88,16 @@ Report output is deterministic for the same workspace and `generatedAt`.
 
 Base path `/api`. Every non-2xx response is `{"error": {"code", "message", "details"?}}`.
 
-| Method and path               | Purpose                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------ |
-| `GET /api/health`             | `{status: "ok", version}`                                                |
-| `GET /api/capabilities`       | PDF limits; AI state (`enabled`, `provider`, `model`, `limits`); storage |
-| `GET /api/workspaces`         | list `{id, name, revision, updatedAt}`                                   |
-| `GET /api/workspaces/{id}`    | `{id, revision, updatedAt, workspace}` or 404 `not_found`                |
-| `PUT /api/workspaces/{id}`    | body `{baseRevision: int \| null, workspace}`; saves a validated snapshot|
-| `DELETE /api/workspaces/{id}` | removes it (204)                                                         |
-| `POST /api/pdf/extract`       | raw `application/pdf` body; returns extracted normalized text            |
-| `POST /api/ai/suggest`        | AI suggestions (disabled unless configured **and** opted in per request) |
+| Method and path               | Purpose                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| `GET /api/health`             | `{status: "ok", version}`                                                 |
+| `GET /api/capabilities`       | PDF limits; AI state (`enabled`, `provider`, `model`, `limits`); storage  |
+| `GET /api/workspaces`         | list `{id, name, revision, updatedAt}`                                    |
+| `GET /api/workspaces/{id}`    | `{id, revision, updatedAt, workspace}` or 404 `not_found`                 |
+| `PUT /api/workspaces/{id}`    | body `{baseRevision: int \| null, workspace}`; saves a validated snapshot |
+| `DELETE /api/workspaces/{id}` | removes it (204)                                                          |
+| `POST /api/pdf/extract`       | raw `application/pdf` body; returns extracted normalized text             |
+| `POST /api/ai/suggest`        | AI suggestions (disabled unless configured **and** opted in per request)  |
 
 `PUT`: `baseRevision` must equal the stored revision (`null` when none exists), otherwise 409
 `stale_revision` with `details.currentRevision`. An invalid snapshot is 422 `invalid_workspace` with

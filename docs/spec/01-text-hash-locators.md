@@ -14,13 +14,13 @@ Nothing else is changed. Normalization is idempotent.
 
 `textProblems(text)` returns the **set** of problem codes of an already-normalized text:
 
-| Code                    | Condition                                                            |
-| ----------------------- | -------------------------------------------------------------------- |
-| `TEXT_INVALID_UNICODE`  | contains a lone surrogate (U+D800 to U+DFFF not part of a pair)      |
-| `TEXT_CONTAINS_NUL`     | contains U+0000                                                      |
-| `TEXT_NOT_NORMALIZED`   | contains U+000D, or starts with U+FEFF                               |
-| `TEXT_TOO_LONG`         | more than 500,000 code points                                        |
-| `TEXT_EMPTY`            | zero code points, or only code points in the **blank set**           |
+| Code                   | Condition                                                       |
+| ---------------------- | --------------------------------------------------------------- |
+| `TEXT_INVALID_UNICODE` | contains a lone surrogate (U+D800 to U+DFFF not part of a pair) |
+| `TEXT_CONTAINS_NUL`    | contains U+0000                                                 |
+| `TEXT_NOT_NORMALIZED`  | contains U+000D, or starts with U+FEFF                          |
+| `TEXT_TOO_LONG`        | more than 500,000 code points                                   |
+| `TEXT_EMPTY`           | zero code points, or only code points in the **blank set**      |
 
 Blank set (explicit so Python and JavaScript agree): U+0009 to U+000D, U+0020, U+0085, U+00A0,
 U+1680, U+2000 to U+200A, U+2028, U+2029, U+202F, U+205F, U+3000.

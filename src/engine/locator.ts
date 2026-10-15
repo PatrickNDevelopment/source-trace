@@ -14,11 +14,7 @@ export interface Locator {
 }
 
 export type LocatorCode =
-  | 'OK'
-  | 'LOC_RANGE'
-  | 'LOC_TOO_LONG'
-  | 'LOC_TEXT_MISMATCH'
-  | 'LOC_CONTEXT_MISMATCH';
+  'OK' | 'LOC_RANGE' | 'LOC_TOO_LONG' | 'LOC_TEXT_MISMATCH' | 'LOC_CONTEXT_MISMATCH';
 
 /** Spec 01 §2. */
 export function contentHash(text: string): string {

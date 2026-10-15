@@ -24,7 +24,8 @@ type Json = unknown;
 type Obj = Record<string, Json>;
 
 const MAX_INT = 999_999_999;
-const TS_RE = /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\.[0-9]{3}Z$/;
+const TS_RE =
+  /^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\.[0-9]{3}Z$/;
 const DATE_RE = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/;
 const HASH_RE = /^[0-9a-f]{64}$/;
 
@@ -172,8 +173,17 @@ function checkSource(c: Check, v: Json): SourceResult {
   const o = c.obj(v);
   if (o === undefined) return { ok: false };
   let ok = c.keys(o, [
-    'id', 'title', 'author', 'date', 'provenance', 'url', 'rights', 'origin', 'text',
-    'contentHash', 'createdAt',
+    'id',
+    'title',
+    'author',
+    'date',
+    'provenance',
+    'url',
+    'rights',
+    'origin',
+    'text',
+    'contentHash',
+    'createdAt',
   ]);
   const rawId = typeof o['id'] === 'string' ? o['id'] : undefined;
   const id = 'id' in o ? checkId(c, o['id'], 's') : undefined;
@@ -219,16 +229,38 @@ function checkSource(c: Check, v: Json): SourceResult {
     }
   }
   if (
-    !ok || id === undefined || title === undefined || author === undefined || date === undefined ||
-    provenance === undefined || url === undefined || rights === undefined || origin === undefined ||
-    text === undefined || hash === undefined || !HASH_RE.test(hash) || createdAt === undefined
+    !ok ||
+    id === undefined ||
+    title === undefined ||
+    author === undefined ||
+    date === undefined ||
+    provenance === undefined ||
+    url === undefined ||
+    rights === undefined ||
+    origin === undefined ||
+    text === undefined ||
+    hash === undefined ||
+    !HASH_RE.test(hash) ||
+    createdAt === undefined
   ) {
     return rawId === undefined ? { ok: false } : { ok: false, rawId };
   }
   return {
     ok: true,
     rawId: id,
-    source: { id, title, author, date, provenance, url, rights, origin, text, contentHash: hash, createdAt },
+    source: {
+      id,
+      title,
+      author,
+      date,
+      provenance,
+      url,
+      rights,
+      origin,
+      text,
+      contentHash: hash,
+      createdAt,
+    },
   };
 }
 
@@ -244,7 +276,13 @@ function checkLocator(c: Check, v: Json): Claim['evidence'][number]['locator'] |
     c.codes.add('FIELD_VALUE');
     return undefined;
   }
-  if (!keysOk || start === undefined || end === undefined || text === undefined || ctx === undefined) {
+  if (
+    !keysOk ||
+    start === undefined ||
+    end === undefined ||
+    text === undefined ||
+    ctx === undefined
+  ) {
     return undefined;
   }
   return { start, end, text, contextHash: ctx };
@@ -259,8 +297,14 @@ function checkEvidence(c: Check, v: Json): Claim['evidence'][number] | undefined
   const locator = 'locator' in o ? checkLocator(c, o['locator']) : undefined;
   const label = 'label' in o ? c.enumStr(o['label'], LABELS) : undefined;
   const note = 'note' in o ? c.str(o['note'], 0, 1000) : undefined;
-  if (!keysOk || id === undefined || sourceId === undefined || locator === undefined ||
-    label === undefined || note === undefined) {
+  if (
+    !keysOk ||
+    id === undefined ||
+    sourceId === undefined ||
+    locator === undefined ||
+    label === undefined ||
+    note === undefined
+  ) {
     return undefined;
   }
   return { id, sourceId, locator, label, note };
@@ -346,8 +390,14 @@ function checkAudit(c: Check, v: Json, index: number): Claim['audit'][number] | 
       }
     }
   }
-  if (!ok || seq === undefined || at === undefined || actor === undefined || type === undefined ||
-    note === undefined) {
+  if (
+    !ok ||
+    seq === undefined ||
+    at === undefined ||
+    actor === undefined ||
+    type === undefined ||
+    note === undefined
+  ) {
     return undefined;
   }
   const event: Claim['audit'][number] = { seq, at, actor, type, note };
@@ -367,7 +417,16 @@ function checkClaim(c: Check, v: Json): ClaimResult {
   const o = c.obj(v);
   if (o === undefined) return { ok: false, evidenceIds: [] };
   let ok = c.keys(o, [
-    'id', 'text', 'kind', 'status', 'evidence', 'reviewNote', 'audit', 'origin', 'createdAt', 'updatedAt',
+    'id',
+    'text',
+    'kind',
+    'status',
+    'evidence',
+    'reviewNote',
+    'audit',
+    'origin',
+    'createdAt',
+    'updatedAt',
   ]);
   const id = 'id' in o ? checkId(c, o['id'], 'c') : undefined;
   const text = 'text' in o ? c.str(o['text'], 0, 2000) : undefined;
@@ -425,8 +484,14 @@ function checkClaim(c: Check, v: Json): ClaimResult {
   }
 
   if (
-    !ok || id === undefined || text === undefined || kind === undefined || status === undefined ||
-    reviewNote === undefined || origin === undefined || createdAt === undefined ||
+    !ok ||
+    id === undefined ||
+    text === undefined ||
+    kind === undefined ||
+    status === undefined ||
+    reviewNote === undefined ||
+    origin === undefined ||
+    createdAt === undefined ||
     updatedAt === undefined
   ) {
     return { ok: false, evidenceIds };
@@ -527,7 +592,11 @@ export function validateWorkspace(value: unknown): string[] {
   }
 
   if (counters !== undefined) {
-    if (counters.source < maxSource || counters.claim < maxClaim || counters.evidence < maxEvidence) {
+    if (
+      counters.source < maxSource ||
+      counters.claim < maxClaim ||
+      counters.evidence < maxEvidence
+    ) {
       c.codes.add('COUNTER_INVALID');
     }
   }

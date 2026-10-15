@@ -26,7 +26,8 @@ interface Case {
 }
 
 function run(c: Case): unknown {
-  const i = c.input as Record<string, never>;
+  const i = c.input as Record<string, unknown>;
+  const g = (key: string): never => i[key] as never;
   switch (c.op) {
     case 'normalize':
       return normalizeText(c.input as string);
@@ -35,14 +36,14 @@ function run(c: Case): unknown {
     case 'hash':
       return contentHash(c.input as string);
     case 'build':
-      return buildLocator(i['text'], i['start'], i['end']);
+      return buildLocator(g('text'), g('start'), g('end'));
     case 'verify':
-      return verifyLocator(i['text'], i['locator']);
+      return verifyLocator(g('text'), g('locator'));
     case 'gate': {
       const sources = new Map(
-        Object.entries(i['sources'] as Record<string, string>).map(([k, v]) => [k, { text: v }]),
+        Object.entries(g('sources') as Record<string, string>).map(([k, v]) => [k, { text: v }]),
       );
-      return approvalBlockers(i['claim'], sources);
+      return approvalBlockers(g('claim'), sources);
     }
     case 'workspace':
       return validateWorkspace(c.input);

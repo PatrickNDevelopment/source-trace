@@ -6,13 +6,13 @@ Statuses: `draft`, `needs_review`, `approved`, `rejected`, `revise`. A new claim
 
 Transition table (`from` to the listed `to` values; anything else is illegal):
 
-| from           | allowed to                          |
-| -------------- | ----------------------------------- |
-| `draft`        | `needs_review`                      |
-| `needs_review` | `approved`, `rejected`, `revise`    |
-| `approved`     | `revise`                            |
-| `rejected`     | `draft`                             |
-| `revise`       | `needs_review`                      |
+| from           | allowed to                       |
+| -------------- | -------------------------------- |
+| `draft`        | `needs_review`                   |
+| `needs_review` | `approved`, `rejected`, `revise` |
+| `approved`     | `revise`                         |
+| `rejected`     | `draft`                          |
+| `revise`       | `needs_review`                   |
 
 Rules:
 
@@ -29,14 +29,14 @@ Rules:
 `approvalBlockers(claim, sources)` returns a sorted list of unique blocker codes. Empty means the claim
 may be approved. `sources` maps source id to source.
 
-| Code                       | Condition                                                                     |
-| -------------------------- | ----------------------------------------------------------------------------- |
-| `CLAIM_TEXT_EMPTY`         | `isBlank(claim.text)`                                                         |
-| `NO_EVIDENCE`              | the claim has no evidence                                                     |
-| `NO_SUPPORT`               | evidence exists and none has label `support` **and** `verifyLocator == OK`    |
-| `EVIDENCE_SOURCE_MISSING`  | some evidence references a source id not present                              |
-| `EVIDENCE_LOCATOR_INVALID` | some evidence whose source exists has `verifyLocator != OK`                   |
-| `CONTRADICTION_PRESENT`    | some evidence has label `contradiction` and `claim.kind != "disputed"`        |
+| Code                       | Condition                                                                  |
+| -------------------------- | -------------------------------------------------------------------------- |
+| `CLAIM_TEXT_EMPTY`         | `isBlank(claim.text)`                                                      |
+| `NO_EVIDENCE`              | the claim has no evidence                                                  |
+| `NO_SUPPORT`               | evidence exists and none has label `support` **and** `verifyLocator == OK` |
+| `EVIDENCE_SOURCE_MISSING`  | some evidence references a source id not present                           |
+| `EVIDENCE_LOCATOR_INVALID` | some evidence whose source exists has `verifyLocator != OK`                |
+| `CONTRADICTION_PRESENT`    | some evidence has label `contradiction` and `claim.kind != "disputed"`     |
 
 Sorting is plain ascending code-unit order of the code strings. The same codes appear in
 `approval_refused` audit events (`codes`) and in UI warnings, with these human messages (UI only):
@@ -54,16 +54,16 @@ All results are labelled `heuristic`. They flag; they do not prove or disprove a
 `runChecks(workspace)` returns findings `{ code, severity, claimId, evidenceId?, message }` sorted by
 claim id, then code, then evidence id.
 
-| Code                    | Severity | Definition                                                                 |
-| ----------------------- | -------- | -------------------------------------------------------------------------- |
-| `MISSING_SOURCE`        | warning  | claim has no evidence                                                      |
-| `UNSUPPORTED_CLAIM`     | warning  | evidence exists but none is a valid `support`                              |
-| `MISMATCHED_CITATION`   | warning  | evidence with `verifyLocator != OK`, or source missing                     |
+| Code                    | Severity | Definition                                                                                                                                                            |
+| ----------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MISSING_SOURCE`        | warning  | claim has no evidence                                                                                                                                                 |
+| `UNSUPPORTED_CLAIM`     | warning  | evidence exists but none is a valid `support`                                                                                                                         |
+| `MISMATCHED_CITATION`   | warning  | evidence with `verifyLocator != OK`, or source missing                                                                                                                |
 | `QUOTE_NOT_IN_PASSAGE`  | warning  | a quoted span in the claim (between `"` and `"`, or `“` and `”`, 3 to 300 code points) does not occur, after collapsing blank runs to one space, in any cited passage |
-| `DATE_NOT_IN_PASSAGE`   | warning  | a year (`\b(1[0-9]{3}\|20[0-9]{2})\b`) or ISO date (`YYYY-MM-DD`) in the claim text occurs in no cited passage |
-| `SOURCE_DATE_MISSING`   | info     | a cited source has no date                                                 |
-| `DUPLICATE_CLAIM`       | warning  | another claim has the same _comparison form_, or token Jaccard similarity >= 0.8 |
-| `CONTRADICTION_PRESENT` | info     | some evidence is labelled `contradiction`                                  |
+| `DATE_NOT_IN_PASSAGE`   | warning  | a year (`\b(1[0-9]{3}\|20[0-9]{2})\b`) or ISO date (`YYYY-MM-DD`) in the claim text occurs in no cited passage (a year inside an ISO date is part of that date)       |
+| `SOURCE_DATE_MISSING`   | info     | a cited source has no date                                                                                                                                            |
+| `DUPLICATE_CLAIM`       | warning  | another claim has the same _comparison form_, or token Jaccard similarity >= 0.8                                                                                      |
+| `CONTRADICTION_PRESENT` | info     | some evidence is labelled `contradiction`                                                                                                                             |
 
 _Comparison form_: Unicode lower-cased, every run of characters that are not letters or digits
 replaced by one space, trimmed. Tokens are the space-separated pieces; Jaccard = |A ∩ B| / |A ∪ B| on
