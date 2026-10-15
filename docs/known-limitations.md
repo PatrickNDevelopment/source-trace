@@ -27,3 +27,13 @@
   Linux with Python 3.12 (not run on a remote yet).
 - **PDF isolation is process-level only:** no memory limit is applied on Windows. Size, page and time
   caps still bound the work.
+- **Audit trail limit:** a claim holds at most 500 audit events (spec 03). At the limit every further
+  change to that claim, including another refused approval, is refused with a message; the history is
+  kept and a new claim must be created to continue.
+- **JSON imports** nest at most 64 levels deep (a real workspace nests 6); deeper files are treated as
+  invalid JSON by both engines.
+- **Two tabs:** a change saved in another tab is flagged with a banner, but this tab's next change still
+  overwrites it (last writer wins in `localStorage`). Reload before continuing.
+- **Hosted demo and the local backend:** the backend's default CORS list only allows
+  `http://localhost:5174` and `http://localhost:4175`. A page served from another origin (for example a
+  future GitHub Pages site) needs `SOURCE_TRACE_CORS_ORIGINS` set before it can write to the backend.

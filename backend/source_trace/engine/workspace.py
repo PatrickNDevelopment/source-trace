@@ -552,6 +552,42 @@ def validate_workspace(value: Any) -> list[str]:
     return sorted(c.codes)
 
 
+MAX_JSON_DEPTH: Final = 64
+
+
+def json_too_deep(text: str, limit: int = MAX_JSON_DEPTH) -> bool:
+    """True when brackets outside string literals nest deeper than ``limit`` (a plain scan, so
+    the answer never depends on a parser's recursion limit)."""
+    depth = 0
+    in_string = False
+    i = 0
+    n = len(text)
+    while i < n:
+        ch = text[i]
+        if in_string:
+            if ch == "\\":
+                i += 1
+            elif ch == '"':
+                in_string = False
+        elif ch == '"':
+            in_string = True
+        elif ch in "[{":
+            depth += 1
+            if depth > limit:
+                return True
+        elif ch in "]}":
+            depth -= 1
+        i += 1
+    return False
+
+
+def _parse_int(digits: str) -> int | float:
+    """JSON numbers are IEEE-754 doubles in the TypeScript twin. Integers short enough to be
+    exact stay ``int``; longer ones (beyond Python's int-string limit, too) become a float,
+    which is ``inf`` exactly when JavaScript gives ``Infinity``."""
+    return int(digits) if len(digits) <= 300 else float(digits)
+
+
 def _reject_constant(_name: str) -> Any:
     raise ValueError("non-finite number")
 
@@ -565,8 +601,10 @@ def parse_workspace_json(text: str, max_bytes: int = MAX_JSON_BYTES) -> tuple[An
         return None, ["JSON_INVALID"]
     if size > max_bytes:
         return None, ["JSON_TOO_LARGE"]
+    if json_too_deep(text):
+        return None, ["JSON_INVALID"]
     try:
-        value = json.loads(text, parse_constant=_reject_constant)
+        value = json.loads(text, parse_constant=_reject_constant, parse_int=_parse_int)
     except (ValueError, RecursionError):
         return None, ["JSON_INVALID"]
     codes = validate_workspace(value)

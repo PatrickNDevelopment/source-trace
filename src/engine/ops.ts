@@ -7,7 +7,7 @@
 import { buildLocator } from './locator';
 import { approvalBlockers, canTransition, isContentEditable } from './state';
 import { contentHash } from './locator';
-import { isBlank, normalizeText, textProblems, trimBlank } from './text';
+import { hasLoneSurrogate, isBlank, normalizeText, textProblems, trimBlank } from './text';
 import { isRealDate } from './workspace';
 import {
   KINDS,
@@ -81,6 +81,23 @@ function withEvent(
   return { ...claim, audit: [...claim.audit, full], updatedAt: when };
 }
 
+/**
+ * Spec 03 §1: every string in a workspace must be free of U+0000 and lone surrogates, so an
+ * operation refuses such input instead of producing a workspace that no longer validates.
+ */
+function unstorable(text: string): boolean {
+  return text.includes('\u0000') || hasLoneSurrogate(text);
+}
+const UNSTORABLE_MESSAGE = 'The text contains a NUL character or invalid Unicode.';
+
+/** Spec 03 §1 limits a claim to 500 audit events; at the limit nothing may append another. */
+function auditFull(claim: Claim): boolean {
+  return claim.audit.length >= LIMITS.auditPerClaim;
+}
+const AUDIT_FULL_MESSAGE =
+  'This claim has reached the limit of 500 audit events, so it cannot change any more. ' +
+  'Its history is kept; create a new claim to continue.';
+
 function replaceClaim(ws: Workspace, claim: Claim): Workspace {
   return { ...ws, claims: ws.claims.map((c) => (c.id === claim.id ? claim : c)) };
 }
@@ -123,6 +140,8 @@ export function sourceMetaProblems(m: {
   if (m.url !== '' && !/^https?:\/\//.test(m.url))
     problems.push('URL must start with http:// or https://.');
   if (len(m.url) > META_LIMITS.url) problems.push('URL is longer than 2000 characters.');
+  if (Object.values(m).some(unstorable))
+    problems.push('A field contains a NUL character or invalid Unicode.');
   return problems;
 }
 
@@ -215,6 +234,7 @@ export function createClaim(
   if (Array.from(input.text).length > 2000) {
     return fail(ws, 'INVALID_CLAIM', 'A claim is limited to 2000 characters.');
   }
+  if (unstorable(input.text)) return fail(ws, 'INVALID_CLAIM', UNSTORABLE_MESSAGE);
   const id = `c_${ws.counters.claim + 1}`;
   const claim: Claim = {
     id,
@@ -260,7 +280,9 @@ export function editClaim(
     return fail(ws, 'INVALID_CLAIM', 'A claim is limited to 2000 characters.');
   if (!(KINDS as readonly string[]).includes(kind))
     return fail(ws, 'INVALID_CLAIM', 'Unknown claim kind.');
+  if (unstorable(text)) return fail(ws, 'INVALID_CLAIM', UNSTORABLE_MESSAGE);
   if (text === claim.text && kind === claim.kind) return { ok: true, value: NIL, workspace: ws };
+  if (auditFull(claim)) return fail(ws, 'AUDIT_FULL', AUDIT_FULL_MESSAGE);
   const changed: string[] = [];
   if (text !== claim.text) changed.push('text');
   if (kind !== claim.kind) changed.push(`kind ${claim.kind} to ${kind}`);
@@ -297,6 +319,8 @@ export function addEvidence(
   const note = input.note ?? '';
   if (Array.from(note).length > 1000)
     return fail(ws, 'INVALID_EVIDENCE', 'Evidence notes are limited to 1000 characters.');
+  if (unstorable(note)) return fail(ws, 'INVALID_EVIDENCE', UNSTORABLE_MESSAGE);
+  if (auditFull(claim)) return fail(ws, 'AUDIT_FULL', AUDIT_FULL_MESSAGE);
   const built = buildLocator(source.text, input.start, input.end);
   if (!built.ok) {
     return fail(
@@ -346,6 +370,7 @@ export function removeEvidence(
   }
   if (!claim.evidence.some((e) => e.id === evidenceId))
     return fail(ws, 'NOT_FOUND', 'That evidence does not exist.');
+  if (auditFull(claim)) return fail(ws, 'AUDIT_FULL', AUDIT_FULL_MESSAGE);
   const next = withEvent(
     { ...claim, evidence: claim.evidence.filter((e) => e.id !== evidenceId) },
     at,
@@ -378,6 +403,7 @@ export function setEvidenceLabel(
   if (!(LABELS as readonly string[]).includes(label))
     return fail(ws, 'INVALID_EVIDENCE', 'Unknown evidence label.');
   if (ev.label === label) return { ok: true, value: NIL, workspace: ws };
+  if (auditFull(claim)) return fail(ws, 'AUDIT_FULL', AUDIT_FULL_MESSAGE);
   const next = withEvent(
     { ...claim, evidence: claim.evidence.map((e) => (e.id === evidenceId ? { ...e, label } : e)) },
     at,
@@ -391,7 +417,9 @@ export function setReviewNote(ws: Workspace, claimId: string, note: string, at: 
   if (claim === undefined) return fail(ws, 'NOT_FOUND', 'That claim does not exist.');
   if (Array.from(note).length > 2000)
     return fail(ws, 'INVALID_CLAIM', 'Review notes are limited to 2000 characters.');
+  if (unstorable(note)) return fail(ws, 'INVALID_CLAIM', UNSTORABLE_MESSAGE);
   if (note === claim.reviewNote) return { ok: true, value: NIL, workspace: ws };
+  if (auditFull(claim)) return fail(ws, 'AUDIT_FULL', AUDIT_FULL_MESSAGE);
   const next = withEvent({ ...claim, reviewNote: note }, at, { type: 'note', note: '' });
   return { ok: true, value: NIL, workspace: replaceClaim(ws, next) };
 }
@@ -411,9 +439,11 @@ export function transitionClaim(
   if (claim === undefined) return fail(ws, 'NOT_FOUND', 'That claim does not exist.');
   if (Array.from(note).length > 1000)
     return fail(ws, 'INVALID_CLAIM', 'Notes are limited to 1000 characters.');
+  if (unstorable(note)) return fail(ws, 'INVALID_CLAIM', UNSTORABLE_MESSAGE);
   if (!canTransition(claim.status, to)) {
     return fail(ws, 'ILLEGAL_TRANSITION', `A claim cannot go from ${claim.status} to ${to}.`);
   }
+  if (auditFull(claim)) return fail(ws, 'AUDIT_FULL', AUDIT_FULL_MESSAGE);
   if (to === 'approved') {
     const sources = new Map(ws.sources.map((s) => [s.id, s]));
     const blockers = approvalBlockers(claim, sources);

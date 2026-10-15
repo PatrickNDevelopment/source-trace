@@ -289,6 +289,36 @@ def generate(seed: int, count: int) -> list[dict[str, Any]]:
                 )
             elif r < 0.65:
                 text = "  \n" + text + "\n  "
+            elif r < 0.72:
+                # nesting around the 64-level limit, at the top level or inside an unknown field
+                depth = rng.choice([1, 30, 62, 63, 64, 65, 200, 5000, 60000])
+                if rng.random() < 0.5:
+                    blob = "[" * depth + "]" * depth
+                else:
+                    blob = '{"a":' * depth + "1" + "}" * depth
+                text = text[:-1] + ', "zz": ' + blob + "}" if rng.random() < 0.7 else blob
+            elif r < 0.79:
+                # integers of every size, beyond a double and beyond Python's int-string limit
+                digits = rng.choice([1, 9, 10, 16, 17, 300, 301, 309, 310, 4300, 4301, 6000])
+                number = rng.choice(["", "-"]) + "1" + "0" * (digits - 1)
+                key = rng.choice(['"claim": ', '"source": ', '"schema": ', '"seq": ', '"start": '])
+                text = text.replace(key, key + number + ', "zz_n": ', 1)
+            elif r < 0.86:
+                # prototype-like keys and shuffled key order
+                key = rng.choice(["__proto__", "constructor", "toString", "hasOwnProperty"])
+                items = list(json.loads(text).items())
+                rng.shuffle(items)
+                doc2 = dict(items)
+                if rng.random() < 0.5 or not doc2.get("claims"):
+                    doc2[key] = {"x": 1}
+                else:
+                    doc2["claims"][0][key] = 1
+                text = json.dumps(doc2)
+            elif r < 0.93:
+                # whitespace JSON forbids (NBSP, LS, VT, FF, ideographic space) or allows (tab, CR)
+                ws_char = chr(rng.choice([0xA0, 0x2028, 0x0B, 0x0C, 0x09, 0x0D, 0x3000]))
+                i = rng.choice([0, len(text), text.find(":") + 1])
+                text = text[:i] + ws_char + text[i:]
             add("json", text)
     # fixed boundary cases that random generation rarely reaches
     add("problems", "a" * 500_000)

@@ -5,6 +5,7 @@ import {
   comparisonForm,
   createClaim,
   datesIn,
+  fence,
   importSource,
   jaccard,
   newWorkspace,
@@ -25,6 +26,10 @@ describe('heuristic helpers', () => {
       'farewell',
     ]);
     expect(quotedSpans('"ab"')).toEqual([]);
+    // Lengths are code points: two emoji (four UTF-16 units) are too short, 300 emoji fit.
+    expect(quotedSpans('"\u{1F600}\u{1F600}"')).toEqual([]);
+    expect(quotedSpans(`"${'\u{1F600}'.repeat(300)}"`)).toHaveLength(1);
+    expect(quotedSpans(`"${'\u{1F600}'.repeat(301)}"`)).toEqual([]);
     expect(datesIn('In 1932 and 2024-06-01, not 12345 or 3000')).toEqual(['2024-06-01', '1932']);
   });
   it('comparison form and jaccard', () => {
@@ -114,7 +119,51 @@ describe('report', () => {
     expect(r1.disclaimer).toMatch(/Nothing here verifies/);
     const md = renderMarkdown(r1);
     expect(md).toMatch(/Nothing here verifies that any claim is true/);
-    expect(md).toContain('> Claim <script>alert(1)</script>');
+    // The claim text sits in a fenced code block, where HTML and Markdown are never rendered.
+    expect(md).toContain(
+      '```text\nClaim <script>alert(1)</script> with `markup` and # heading\n```',
+    );
     expect(md.split('\n').every((l) => !l.startsWith('<script'))).toBe(true);
+  });
+
+  it('keeps hostile source and claim markup inside code blocks (reviewer regression)', () => {
+    const hostile =
+      '<img src=x onerror=alert(1)> ![t](http://tracker.example/p.png) [x](javascript:alert(1))\n' +
+      '# Heading\n```\nfence break attempt ```` and ~~~\n<script>alert(2)</script>';
+    const s = importSource(
+      newWorkspace('W'),
+      { title: 'T', origin: 'paste', rawText: hostile },
+      AT,
+    );
+    if (!s.ok) throw new Error('src');
+    const c = createClaim(s.workspace, { text: `See ${hostile}`, kind: 'factual' }, AT);
+    if (!c.ok) throw new Error('claim');
+    const e = addEvidence(
+      c.workspace,
+      c.value,
+      { sourceId: s.value, start: 0, end: Array.from(hostile).length, label: 'support' },
+      AT,
+    );
+    if (!e.ok) throw new Error('ev');
+    const md = renderMarkdown(buildReport(e.workspace, AT));
+    // Walk the Markdown the way CommonMark treats backtick fences: hostile lines must be inside one.
+    let open: string | null = null;
+    const outside: string[] = [];
+    for (const raw of md.split('\n')) {
+      const m = /^ {0,3}(`{3,})(.*)$/.exec(raw);
+      if (open === null && m) {
+        open = m[1] ?? '';
+        continue;
+      }
+      if (open !== null && m && (m[1] ?? '').length >= open.length && (m[2] ?? '').trim() === '') {
+        open = null;
+        continue;
+      }
+      if (open === null) outside.push(raw);
+    }
+    expect(open).toBeNull();
+    const leaked = outside.filter((l) => /<img|<script|!\[|\]\(javascript|^# Heading/.test(l));
+    expect(leaked).toEqual([]);
+    expect(fence('a ```` b')).toBe('`````text\na ```` b\n`````');
   });
 });

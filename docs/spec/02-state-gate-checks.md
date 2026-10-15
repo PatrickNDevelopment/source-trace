@@ -23,6 +23,10 @@ Rules:
   edited in any status.
 - Every transition appends an audit event. A refused approval appends an `approval_refused` event and
   does not change the status.
+- A claim holds at most 500 audit events (spec 03 §1). When it already holds 500, every operation
+  that would append one (including a refused approval) is refused with `AUDIT_FULL` and changes
+  nothing, so the workspace always stays valid.
+- Operations refuse text containing U+0000 or a lone surrogate (it could not be stored validly).
 
 ## 2. Approval gate (shared contract)
 

@@ -67,11 +67,18 @@ Cross-record rules:
 Validation never throws. It collects every code it can find, but when the top-level value is not an
 object it returns `["NOT_OBJECT"]`; and when `schema` is not 1 it returns `["SCHEMA_VERSION"]` only.
 Rules that need a well-formed record (hash, locator, gate) are evaluated only for records whose own
-field rules passed, so the result is the same in both implementations.
+field rules passed, so the result is the same in both implementations. In particular the `sources`
+map given to `approvalBlockers` for `APPROVED_FAILS_GATE` holds only well-formed sources: an approved
+claim that cites a malformed source fails the gate with `EVIDENCE_SOURCE_MISSING`.
 
 `parseWorkspaceJson(text)`: text whose UTF-8 encoding is longer than 20,000,000 bytes
-returns `["JSON_TOO_LARGE"]`; text that is not valid JSON (`NaN`, `Infinity` and trailing commas are
-invalid) returns `["JSON_INVALID"]`; otherwise `validateWorkspace(JSON.parse(text))`.
+returns `["JSON_TOO_LARGE"]`; text whose `[` and `{` outside string literals nest more than 64 levels
+deep returns `["JSON_INVALID"]` (checked by a plain scan before parsing, so the answer never depends
+on a parser's recursion limit; a valid workspace nests 6 levels); text that is not valid JSON (`NaN`,
+`Infinity` and trailing commas are invalid) returns `["JSON_INVALID"]`; otherwise
+`validateWorkspace(JSON.parse(text))`. Every JSON number is read as the nearest IEEE-754 double, as
+JavaScript does: an integer literal too large for a double is `Infinity` (so a 5,000-digit integer is
+a `FIELD_VALUE`, not invalid JSON).
 Import and export are therefore symmetric: what the exporter writes always validates.
 
 ## 2. Report (TypeScript only)
@@ -99,7 +106,7 @@ Base path `/api`. Every non-2xx response is `{"error": {"code", "message", "deta
 | `POST /api/pdf/extract`       | raw `application/pdf` body; returns extracted normalized text             |
 | `POST /api/ai/suggest`        | AI suggestions (disabled unless configured **and** opted in per request)  |
 
-`PUT`: `baseRevision` must equal the stored revision (`null` when none exists), otherwise 409
+`PUT`: `baseRevision` (a JSON integer or `null`; strings, booleans and floats are 422) must equal the stored revision (`null` when none exists), otherwise 409
 `stale_revision` with `details.currentRevision`. An invalid snapshot is 422 `invalid_workspace` with
 `details.codes` (the list from section 1). A valid one is stored and the new revision (previous + 1,
 starting at 1) is returned. Ids match `^[A-Za-z0-9_-]{1,64}$`.
@@ -110,10 +117,11 @@ starting at 1) is returned. Ids match `^[A-Za-z0-9_-]{1,64}$`.
 
 `POST /api/ai/suggest`: requires configured provider **and** header
 `X-SourceTrace-AI-Opt-In: session`. Body `{task: "suggest_claims" | "find_evidence", sources:
-[{id, title, text}], claimText?}` with at most 5 sources and 60,000 code points of text in total.
+[{id, title, text}], claimText?}` with at most 5 sources and 60,000 code points of text in total; source ids must be workspace ids (`s_<n>`).
 Provider output must match the schema `{suggestions: [{claimText, kind, sourceId, start, end, text,
 label, rationale}]}`; each suggestion is kept only if `sourceId` is one of the request's ids and
-`verifyLocator` succeeds against that source's text for `[start, end)` and `text`; the others are
+`verifyLocator` succeeds against that source's text for `[start, end)` and `text`, and its
+`claimText` and `rationale` hold no U+0000 or lone surrogate; the others are
 counted in `meta.rejected`. The response is `{suggestions, meta: {provider, model, promptVersion,
 rejected}}` and never contains a status or an approval. Limits: 20 calls per hour per process,
 `ai_rate_limited` (429) beyond. Errors: 403 `ai_disabled`, 403 `ai_opt_in_required`,

@@ -40,6 +40,11 @@ export function loadWorkspace(): LoadResult {
   return { kind: 'recovered', workspace: newWorkspace('My workspace'), codes: parsed.codes };
 }
 
+/** The raw text kept by the last recovery, so the person can download and inspect it. */
+export function readCorruptCopy(): string | null {
+  return readItem(storage(), CORRUPT_KEY);
+}
+
 /** Returns an error message, or null on success. One setItem call: nothing half-written. */
 export function saveWorkspace(workspace: Workspace): string | null {
   const s = storage();

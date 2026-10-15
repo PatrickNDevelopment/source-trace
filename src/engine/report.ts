@@ -121,12 +121,18 @@ export function buildReport(ws: Workspace, generatedAt: string): Report {
   };
 }
 
-function fence(text: string): string {
-  // One-line blockquote per passage line, so source markup can never become report markup.
-  return text
-    .split('\n')
-    .map((line) => `> ${line}`)
-    .join('\n');
+/**
+ * A fenced code block holding `text` verbatim. Inside a code block Markdown and HTML are never
+ * interpreted, so source or claim markup cannot become report markup (a blockquote would still
+ * render inline HTML, links and images). The fence is longer than any backtick run in the text,
+ * so the text cannot close it early.
+ */
+export function fence(text: string): string {
+  const longest = Math.max(0, ...Array.from(text.matchAll(/`+/g), (m) => m[0].length));
+  const marker = '`'.repeat(Math.max(3, longest + 1));
+  return `${marker}text
+${text}
+${marker}`;
 }
 
 function inline(text: string): string {

@@ -74,7 +74,8 @@ export function jaccard(a: Set<string>, b: Set<string>): number {
 
 export function quotedSpans(text: string): string[] {
   const out: string[] = [];
-  const re = /"([^"]{3,300})"|“([^”]{3,300})”/g;
+  // `u`: the 3 to 300 limit counts code points (spec 02 §3), not UTF-16 units.
+  const re = /"([^"]{3,300})"|“([^”]{3,300})”/gu;
   for (const m of text.matchAll(re)) out.push((m[1] ?? m[2]) as string);
   return out;
 }

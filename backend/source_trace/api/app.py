@@ -14,7 +14,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictInt
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .. import __version__
@@ -47,12 +47,14 @@ class Context:
 
 
 class PutWorkspace(BaseModel):
-    baseRevision: int | None = Field(default=None, ge=0)  # noqa: N815
+    baseRevision: StrictInt | None = Field(default=None, ge=0)  # noqa: N815
     workspace: dict[str, Any]
 
 
 class SourceIn(BaseModel):
-    id: str = Field(min_length=1, max_length=40)
+    # Workspace source ids only (spec 03 section 1), so an id can neither break the prompt's
+    # source blocks nor carry text into the usage log.
+    id: str = Field(pattern=r"^s_[1-9][0-9]{0,8}$")
     title: str = Field(default="", max_length=200)
     text: str = Field(min_length=1)
 

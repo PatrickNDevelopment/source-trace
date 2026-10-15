@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { OpResult, Workspace } from './engine';
+import { validateWorkspace, type OpResult, type Workspace } from './engine';
 import { ApiError, api, type Capabilities } from './lib/api';
+import { downloadText } from './lib/files';
 import { isSampleWorkspace } from './lib/sample';
 import {
   DEFAULT_BACKEND_URL,
   WORKSPACE_KEY,
   loadBackendPrefs,
   loadWorkspace,
+  readCorruptCopy,
   saveBackendPrefs,
   saveWorkspace,
   type LoadResult,
@@ -148,7 +150,18 @@ export function App(): ReactNode {
       loadFromBackend: async (): Promise<void> => {
         try {
           const r = await api.getWorkspace(prefs.url, BACKEND_WORKSPACE_ID);
+          // The backend is only another input: check its snapshot with the same rules as an import.
+          const codes = validateWorkspace(r.workspace);
+          if (codes.length > 0) {
+            notify(
+              'error',
+              `The backend sent a workspace that does not pass validation (${codes.join(', ')}). Nothing was replaced.`,
+            );
+            return;
+          }
           commitWs(r.workspace);
+          setSelectedSourceId('');
+          setSelectedClaimId('');
           setRevision(r.revision);
           notify('success', `Loaded revision ${r.revision} from the backend.`);
         } catch (e) {
@@ -262,7 +275,17 @@ export function App(): ReactNode {
         {recovered ? (
           <p className="banner banner-warn" role="alert">
             The stored workspace could not be read ({recovered}). A copy was kept in this browser
-            and you are looking at an empty workspace.
+            and you are looking at an empty workspace.{' '}
+            <button
+              type="button"
+              onClick={() => {
+                const raw = readCorruptCopy();
+                if (raw === null) notify('error', 'The unreadable copy is no longer available.');
+                else downloadText('unreadable-workspace.json', raw, 'application/json');
+              }}
+            >
+              Download the unreadable copy
+            </button>
           </p>
         ) : null}
         {storageError ? (

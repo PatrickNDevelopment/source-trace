@@ -108,6 +108,43 @@ text_doc = {
         },
     ],
 }
+
+# ---- independent acceptance review: hand-derived cases (expected values stated by hand) ------
+text_doc["normalize"] += [
+    {"name": "review: crlf then lone cr", "input": "\r\n\r", "expected": "\n\n"},
+    {"name": "review: lf then crlf", "input": "\n\r\n", "expected": "\n\n"},
+    {
+        "name": "review: boms, cr cr lf and a lone cr",
+        "input": "\ufeff\ufeffa\r\r\nb\rc",
+        "expected": "a\n\nb\nc",
+    },
+    {
+        "name": "review: line separator and NEL untouched",
+        "input": "a\u2028b\u0085c",
+        "expected": "a\u2028b\u0085c",
+    },
+]
+text_doc["problems"] += [
+    {"name": "review: U+180E is not in the blank set", "text": "\u180e", "expected": []},
+    {
+        "name": "review: blank set edge members",
+        "text": "\u2000\u200a\u205f\u1680\u0085\u000b\u000c",
+        "expected": ["TEXT_EMPTY"],
+    },
+    {
+        "name": "review: one zero width space breaks blankness",
+        "text": "\u3000\u200b",
+        "expected": [],
+    },
+    {"name": "review: a lone BOM", "text": "\ufeff", "expected": ["TEXT_NOT_NORMALIZED"]},
+    {"name": "review: a lone CR", "text": "\r", "expected": ["TEXT_EMPTY", "TEXT_NOT_NORMALIZED"]},
+    {
+        "name": "review: Python isspace() separators are not blank",
+        "text": "\x1c\x1d\x1e\x1f",
+        "expected": [],
+    },
+    {"name": "review: NUL alone", "text": "\u0000", "expected": ["TEXT_CONTAINS_NUL"]},
+]
 write("text.json", text_doc)
 
 # ---- locators -------------------------------------------------------------------------------
@@ -185,6 +222,74 @@ loc_doc["verify"] += [
         "name": "text wins over context",
         "source": "abc",
         "locator": {"start": 0, "end": 2, "text": "zz", "contextHash": sha("x")},
+        "expected": "LOC_TEXT_MISMATCH",
+    },
+]
+
+# ---- independent acceptance review: locators ---------------------------------------------------
+# "Ab\r\n<emoji><CJK>e<U+0301>!" normalizes to 8 code points: A0 b1 LF2 emoji3 CJK4 e5 U+0301 6 !7.
+MIX = norm("Ab\r\n\U0001f600\u6f22e\u0301!")
+# 40 emoji, "ab" at code points 40..41 (UTF-16 80..81), 40 emoji: tests the 32 code point window.
+WIN = "\U0001f600" * 40 + "ab" + "\U0001f600" * 40
+for name, src, a, b in [
+    ("review: emoji, CJK and a combining mark after a CRLF", MIX, 3, 7),
+    ("review: a combining mark alone is a code point", MIX, 6, 7),
+    ("review: context window counted in code points", WIN, 40, 42),
+]:
+    loc_doc["build"].append(
+        {"name": name, "source": src, "start": a, "end": b, "expected": locator(src, a, b)}
+    )
+loc_doc["build"].append(
+    {
+        "name": "review: end beyond 8 code points",
+        "source": MIX,
+        "start": 7,
+        "end": 9,
+        "expected": "LOC_RANGE",
+    }
+)
+
+
+def _swap(text: str, index: int, ch: str) -> str:
+    return text[:index] + ch + text[index + 1 :]
+
+
+win_loc = locator(WIN, 40, 42)
+loc_doc["verify"] += [
+    {
+        "name": "review: passage kept, character after it changed",
+        "source": _swap(MIX, 7, "?"),
+        "locator": locator(MIX, 3, 7),
+        "expected": "LOC_CONTEXT_MISMATCH",
+    },
+    {
+        "name": "review: change at code point 7 is outside the window",
+        "source": _swap(WIN, 7, "x"),
+        "locator": win_loc,
+        "expected": "OK",
+    },
+    {
+        "name": "review: change at code point 8 is inside the window",
+        "source": _swap(WIN, 8, "x"),
+        "locator": win_loc,
+        "expected": "LOC_CONTEXT_MISMATCH",
+    },
+    {
+        "name": "review: change at code point 73 is inside the window",
+        "source": _swap(WIN, 73, "x"),
+        "locator": win_loc,
+        "expected": "LOC_CONTEXT_MISMATCH",
+    },
+    {
+        "name": "review: change at code point 74 is outside the window",
+        "source": _swap(WIN, 74, "x"),
+        "locator": win_loc,
+        "expected": "OK",
+    },
+    {
+        "name": "review: UTF-16 offsets are not code point offsets",
+        "source": WIN,
+        "locator": {**win_loc, "start": 80, "end": 82},
         "expected": "LOC_TEXT_MISMATCH",
     },
 ]
@@ -292,6 +397,37 @@ state_doc["gate"] = [
         [unk],
         ["NO_SUPPORT"],
     ),
+]
+
+# ---- independent acceptance review: gate ---------------------------------------------------------
+con_stale = {**con, "id": "e_6", "locator": {**con["locator"], "text": "Wrong"}}
+con_dangling = {**con, "id": "e_7", "sourceId": "s_9"}
+state_doc["gate"] += [
+    gate_case(
+        "review: factual with an invalid contradiction",
+        "x",
+        "factual",
+        [con_stale],
+        ["CONTRADICTION_PRESENT", "EVIDENCE_LOCATOR_INVALID", "NO_SUPPORT"],
+    ),
+    gate_case(
+        "review: disputed with support and a dangling contradiction",
+        "x",
+        "disputed",
+        [sup, con_dangling],
+        ["EVIDENCE_SOURCE_MISSING"],
+    ),
+    gate_case(
+        "review: interpretation with support and contradiction",
+        "x",
+        "interpretation",
+        [sup, con],
+        ["CONTRADICTION_PRESENT"],
+    ),
+    gate_case(
+        "review: disputed with unknown evidence only", "x", "disputed", [unk], ["NO_SUPPORT"]
+    ),
+    gate_case("review: a zero width space is not blank text", "\u200b", "factual", [sup], []),
 ]
 write("state.json", state_doc)
 
@@ -576,6 +712,60 @@ ws: list[dict[str, Any]] = [
         ["FIELD_VALUE"],
     ),
 ]
+
+# ---- independent acceptance review: workspaces ---------------------------------------------------
+draft_ws = workspace([S1, S2], [claim(1, "x", "factual", "draft", [])])
+ws += [
+    case(
+        "review: approved claim citing a malformed source",
+        mutated(lambda d: d["sources"][0].update(text="a\r\nb")),
+        ["APPROVED_FAILS_GATE", "TEXT_NOT_NORMALIZED"],
+    ),
+    case(
+        "review: draft with an empty audit trail is valid",
+        {**draft_ws, "claims": [{**draft_ws["claims"][0], "audit": []}]},
+        [],
+    ),
+    case(
+        "review: needs_review with an empty audit trail",
+        {**draft_ws, "claims": [{**draft_ws["claims"][0], "audit": [], "status": "needs_review"}]},
+        ["AUDIT_STATUS_MISMATCH"],
+    ),
+    case(
+        "review: transition event carrying codes",
+        mutated(lambda d: d["claims"][0]["audit"][2].update(codes=["NO_SUPPORT"])),
+        ["UNKNOWN_FIELD"],
+    ),
+    case(
+        "review: refusal event carrying from",
+        mutated(
+            lambda d: d["claims"][0]["audit"].append(
+                {**refusal(["NO_SUPPORT"]), "from": "needs_review"}
+            )
+        ),
+        ["UNKNOWN_FIELD"],
+    ),
+    case(
+        "review: claim counter zero",
+        mutated(lambda d: d["counters"].update(claim=0)),
+        ["COUNTER_INVALID"],
+    ),
+    case(
+        "review: timestamps are checked for shape only",
+        mutated(lambda d: d["claims"][0].update(createdAt="2026-02-30T00:00:00.000Z")),
+        [],
+    ),
+    case(
+        "review: 1900 is not a leap year",
+        mutated(lambda d: d["sources"][1].update(date="1900-02-29")),
+        ["FIELD_VALUE"],
+    ),
+    case(
+        "review: 2000 is a leap year",
+        mutated(lambda d: d["sources"][1].update(date="2000-02-29")),
+        [],
+    ),
+]
 write("workspace.json", {"cases": ws})
 
 # JSON-text level (the import layer)
@@ -622,6 +812,50 @@ json_cases = [
     {
         "name": "huge exponent",
         "text": good_text.replace('"claim": 1', '"claim": 1e999', 1),
+        "expected": ["FIELD_VALUE"],
+    },
+]
+
+# ---- independent acceptance review: the JSON layer (nesting, huge integers) ---------------------
+json_cases += [
+    {
+        "name": "review: nesting 65 levels deep",
+        "text": '{"schema": 1, "zz": ' + "[" * 64 + "]" * 64 + "}",
+        "expected": ["JSON_INVALID"],
+    },
+    {
+        "name": "review: nesting exactly 64 levels deep",
+        "text": good_text[:-1] + ', "zz": ' + "[" * 63 + "]" * 63 + "}",
+        "expected": ["UNKNOWN_FIELD"],
+    },
+    {
+        "name": "review: 100000 nested arrays",
+        "text": "[" * 100_000 + "]" * 100_000,
+        "expected": ["JSON_INVALID"],
+    },
+    {
+        "name": "review: brackets inside a string do not nest",
+        "text": good_text.replace('"Fixture workspace"', '"' + "[" * 100 + '"', 1),
+        "expected": [],
+    },
+    {
+        "name": "review: escaped quote keeps the string open",
+        "text": good_text.replace('"Fixture workspace"', '"a\\"' + "{" * 70 + '"', 1),
+        "expected": [],
+    },
+    {
+        "name": "review: 5000-digit integer counter",
+        "text": good_text.replace('"claim": 1', '"claim": 1' + "0" * 5000, 1),
+        "expected": ["FIELD_VALUE"],
+    },
+    {
+        "name": "review: 5000-digit schema",
+        "text": '{"schema": 1' + "0" * 5000 + "}",
+        "expected": ["SCHEMA_VERSION"],
+    },
+    {
+        "name": "review: 400-digit negative integer",
+        "text": good_text.replace('"source": 2', '"source": -1' + "0" * 399, 1),
         "expected": ["FIELD_VALUE"],
     },
 ]

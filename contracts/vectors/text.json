@@ -54,6 +54,26 @@
       "name": "emoji kept",
       "input": "x\ud83d\ude00y",
       "expected": "x\ud83d\ude00y"
+    },
+    {
+      "name": "review: crlf then lone cr",
+      "input": "\r\n\r",
+      "expected": "\n\n"
+    },
+    {
+      "name": "review: lf then crlf",
+      "input": "\n\r\n",
+      "expected": "\n\n"
+    },
+    {
+      "name": "review: boms, cr cr lf and a lone cr",
+      "input": "\ufeff\ufeffa\r\r\nb\rc",
+      "expected": "a\n\nb\nc"
+    },
+    {
+      "name": "review: line separator and NEL untouched",
+      "input": "a\u2028b\u0085c",
+      "expected": "a\u2028b\u0085c"
     }
   ],
   "problems": [
@@ -131,6 +151,41 @@
       "name": "500000 emoji",
       "repeat": ["\ud83d\ude00", 500000],
       "expected": []
+    },
+    {
+      "name": "review: U+180E is not in the blank set",
+      "text": "\u180e",
+      "expected": []
+    },
+    {
+      "name": "review: blank set edge members",
+      "text": "\u2000\u200a\u205f\u1680\u0085\u000b\f",
+      "expected": ["TEXT_EMPTY"]
+    },
+    {
+      "name": "review: one zero width space breaks blankness",
+      "text": "\u3000\u200b",
+      "expected": []
+    },
+    {
+      "name": "review: a lone BOM",
+      "text": "\ufeff",
+      "expected": ["TEXT_NOT_NORMALIZED"]
+    },
+    {
+      "name": "review: a lone CR",
+      "text": "\r",
+      "expected": ["TEXT_EMPTY", "TEXT_NOT_NORMALIZED"]
+    },
+    {
+      "name": "review: Python isspace() separators are not blank",
+      "text": "\u001c\u001d\u001e\u001f",
+      "expected": []
+    },
+    {
+      "name": "review: NUL alone",
+      "text": "\u0000",
+      "expected": ["TEXT_CONTAINS_NUL"]
     }
   ],
   "hash": [

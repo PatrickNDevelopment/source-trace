@@ -12,12 +12,12 @@ application: it stores workspace snapshots in SQLite, extracts text from PDFs, a
 AI assistant. Because it stores snapshots, it must refuse invalid ones, so a small subset of the
 engine exists twice (TypeScript and Python). That subset is the **shared contract**:
 
-| Shared contract piece | Spec      | TS                          | Python                         |
-| --------------------- | --------- | --------------------------- | ------------------------------ |
-| text rules + hash     | 01 §1, §2 | `engine/text.ts`, `hash.ts` | `engine/text.py`, `hashing.py` |
-| locators              | 01 §3     | `engine/locator.ts`         | `engine/locator.py`            |
-| state table + gate    | 02 §1, §2 | `engine/state.ts`           | `engine/state.py`              |
-| workspace validation  | 03 §1     | `engine/workspace.ts`       | `engine/workspace.py`          |
+| Shared contract piece | Spec      | TS                                          | Python                         |
+| --------------------- | --------- | ------------------------------------------- | ------------------------------ |
+| text rules + hash     | 01 §1, §2 | `engine/text.ts`, `sha256.ts`, `locator.ts` | `engine/text.py`, `locator.py` |
+| locators              | 01 §3     | `engine/locator.ts`                         | `engine/locator.py`            |
+| state table + gate    | 02 §1, §2 | `engine/state.ts`                           | `engine/state.py`              |
+| workspace validation  | 03 §1     | `engine/workspace.ts`                       | `engine/workspace.py`          |
 
 Everything else (heuristic checks, report, UI view-models, AI suggestion handling in the client) is
 TypeScript only and is **not** part of the contract. The contract is held together by:

@@ -525,8 +525,7 @@ function ClaimDetail({
       </label>
       {!editable ? (
         <p className="help">
-          Text, kind and evidence are locked while a claim is{' '}
-          {STATUS_LABEL[claim.status].toLowerCase()}.
+          {`Text, kind and evidence are locked while the status is “${STATUS_LABEL[claim.status]}”.`}
           {claim.status === 'needs_review' || claim.status === 'approved'
             ? ' Request a revision to edit it.'
             : ' Reopen it as a draft to edit it.'}

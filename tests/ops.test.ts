@@ -269,3 +269,64 @@ describe('random operation sequences', () => {
     }
   });
 });
+
+describe('reviewer regressions', () => {
+  it('stops appending at the 500-event audit limit, so the workspace stays valid', () => {
+    const { ws: w0, cid } = base();
+    const sent = transitionClaim(w0, cid, 'needs_review', '', T(3));
+    if (!sent.ok) throw new Error('send');
+    let ws = sent.workspace;
+    // Pressing "Approve" again and again on an unsupported claim records each refusal...
+    for (let i = 0; i < 520; i += 1) ws = transitionClaim(ws, cid, 'approved', '', T(4)).workspace;
+    const claim = ws.claims.find((c) => c.id === cid);
+    // ...but never more than the 500 events a valid workspace may hold.
+    expect(claim?.audit).toHaveLength(500);
+    expect(validateWorkspace(ws)).toEqual([]);
+    const blocked = transitionClaim(ws, cid, 'approved', '', T(5));
+    expect(blocked.ok).toBe(false);
+    if (!blocked.ok) {
+      expect(blocked.code).toBe('AUDIT_FULL');
+      expect(blocked.workspace).toBe(ws);
+    }
+    for (const r of [
+      setReviewNote(ws, cid, 'note', T(5)),
+      transitionClaim(ws, cid, 'revise', '', T(5)),
+    ]) {
+      expect(r.ok).toBe(false);
+      expect(r.workspace).toBe(ws);
+    }
+  });
+
+  it('refuses NUL and lone surrogates that would make the workspace invalid', () => {
+    const { ws, sid, cid } = base();
+    const nul = 'a\u0000b';
+    const lone = `a${String.fromCharCode(0xd800)}b`;
+    expect(createClaim(ws, { text: nul, kind: 'factual' }, T(3)).ok).toBe(false);
+    expect(createClaim(ws, { text: lone, kind: 'factual' }, T(3)).ok).toBe(false);
+    expect(editClaim(ws, cid, { text: nul }, T(3)).ok).toBe(false);
+    expect(setReviewNote(ws, cid, nul, T(3)).ok).toBe(false);
+    expect(transitionClaim(ws, cid, 'needs_review', nul, T(3)).ok).toBe(false);
+    expect(
+      addEvidence(ws, cid, { sourceId: sid, start: 0, end: 3, label: 'support', note: nul }, T(3))
+        .ok,
+    ).toBe(false);
+    expect(importSource(ws, { title: nul, origin: 'paste', rawText: 'other' }, T(3)).ok).toBe(
+      false,
+    );
+    const ai = acceptSuggestion(
+      ws,
+      {
+        claimText: nul,
+        kind: 'factual',
+        sourceId: sid,
+        start: 0,
+        end: 3,
+        text: 'The',
+        label: 'support',
+      },
+      T(3),
+    );
+    expect(ai.ok).toBe(false);
+    expect(ai.workspace).toBe(ws);
+  });
+});

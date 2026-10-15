@@ -603,6 +603,34 @@ export function validateWorkspace(value: unknown): string[] {
   return [...c.codes].sort();
 }
 
+/** Spec 03 §1: JSON nesting limit. A valid workspace nests 6 levels deep. */
+export const MAX_JSON_DEPTH = 64;
+
+/**
+ * True when the brackets of `text`, outside string literals, nest deeper than `limit`. A plain
+ * scan, so both implementations give the same answer whatever their parser's recursion limits.
+ */
+export function jsonTooDeep(text: string, limit: number = MAX_JSON_DEPTH): boolean {
+  let depth = 0;
+  let inString = false;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text.charCodeAt(i);
+    if (inString) {
+      if (ch === 0x5c)
+        i += 1; // backslash: skip the escaped character
+      else if (ch === 0x22) inString = false;
+    } else if (ch === 0x22) {
+      inString = true;
+    } else if (ch === 0x5b || ch === 0x7b) {
+      depth += 1;
+      if (depth > limit) return true;
+    } else if (ch === 0x5d || ch === 0x7d) {
+      depth -= 1;
+    }
+  }
+  return false;
+}
+
 /** Spec 03 §1 `parseWorkspaceJson`. */
 export function parseWorkspaceJson(
   text: string,
@@ -611,6 +639,7 @@ export function parseWorkspaceJson(
   if (new TextEncoder().encode(text).length > maxBytes) {
     return { ok: false, codes: ['JSON_TOO_LARGE'] };
   }
+  if (jsonTooDeep(text)) return { ok: false, codes: ['JSON_INVALID'] };
   let value: unknown;
   try {
     value = JSON.parse(text);

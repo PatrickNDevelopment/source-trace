@@ -44,6 +44,8 @@ def header(scope: Scope, name: str) -> str | None:
 
 
 def host_name(raw: str) -> str | None:
+    if "@" in raw:
+        return None  # a Host header never carries user info; urlsplit would hide the real host
     try:
         return urlsplit("//" + raw.strip()).hostname
     except ValueError:
@@ -92,12 +94,13 @@ class OriginGuard:
         await self.app(scope, receive, send)
 
 
-class _TooLargeError(Exception):
-    pass
-
-
 class BodyLimit:
-    """Rejects bodies over ``max_bytes``: by Content-Length up front and while streaming."""
+    """Rejects bodies over ``max_bytes``: by Content-Length up front and while streaming.
+
+    When a streamed body crosses the cap, the 413 is sent from here at once and the application
+    is told the client disconnected; whatever it tries to send afterwards is dropped. (Raising an
+    exception through the application would be turned into a 400 by FastAPI's body parsing.)
+    """
 
     def __init__(self, app: ASGIApp, max_bytes: int) -> None:
         self.app = app
@@ -113,27 +116,37 @@ class BodyLimit:
             return
         seen = 0
         started = False
+        refused = False
 
         async def counting_receive() -> Message:
-            nonlocal seen
+            nonlocal seen, refused
+            if refused:
+                return {"type": "http.disconnect"}
             message = await receive()
             if message["type"] == "http.request":
                 seen += len(message.get("body", b""))
                 if seen > self.max:
-                    raise _TooLargeError
+                    refused = True
+                    if not started:
+                        await respond(
+                            send, 413, "payload_too_large", f"The body exceeds {self.max} bytes."
+                        )
+                    return {"type": "http.disconnect"}
             return message
 
-        async def tracking_send(message: Message) -> None:
+        async def guarded_send(message: Message) -> None:
             nonlocal started
+            if refused:
+                return
             if message["type"] == "http.response.start":
                 started = True
             await send(message)
 
         try:
-            await self.app(scope, counting_receive, tracking_send)
-        except _TooLargeError:
-            if not started:
-                await respond(send, 413, "payload_too_large", f"The body exceeds {self.max} bytes.")
+            await self.app(scope, counting_receive, guarded_send)
+        except Exception:
+            if not refused:
+                raise
 
 
 class Deadline:

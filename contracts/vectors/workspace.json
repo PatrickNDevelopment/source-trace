@@ -4702,6 +4702,784 @@
         ]
       },
       "expected": ["FIELD_VALUE"]
+    },
+    {
+      "name": "review: approved claim citing a malformed source",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 1,
+          "evidence": 1
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "a\r\nb",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "The bridge opened in 1932.",
+            "kind": "factual",
+            "status": "approved",
+            "evidence": [
+              {
+                "id": "e_1",
+                "sourceId": "s_1",
+                "locator": {
+                  "start": 0,
+                  "end": 25,
+                  "text": "The bridge opened in 1932",
+                  "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+                },
+                "label": "support",
+                "note": ""
+              }
+            ],
+            "reviewNote": "",
+            "audit": [
+              {
+                "seq": 1,
+                "at": "2025-10-09T08:55:50.000Z",
+                "actor": "user",
+                "type": "created",
+                "note": ""
+              },
+              {
+                "seq": 2,
+                "at": "2025-10-09T08:55:51.500Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "draft",
+                "to": "needs_review"
+              },
+              {
+                "seq": 3,
+                "at": "2025-10-09T08:55:53.000Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "needs_review",
+                "to": "approved"
+              }
+            ],
+            "origin": "manual",
+            "createdAt": "2025-10-09T08:55:50.000Z",
+            "updatedAt": "2025-10-09T08:55:54.500Z"
+          }
+        ]
+      },
+      "expected": ["APPROVED_FAILS_GATE", "TEXT_NOT_NORMALIZED"]
+    },
+    {
+      "name": "review: draft with an empty audit trail is valid",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 1,
+          "evidence": 0
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "The bridge opened in 1932. Critics disliked the paint.",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "x",
+            "kind": "factual",
+            "status": "draft",
+            "evidence": [],
+            "reviewNote": "",
+            "audit": [],
+            "origin": "manual",
+            "createdAt": "2025-10-09T08:55:50.000Z",
+            "updatedAt": "2025-10-09T08:55:51.500Z"
+          }
+        ]
+      },
+      "expected": []
+    },
+    {
+      "name": "review: needs_review with an empty audit trail",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 1,
+          "evidence": 0
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "The bridge opened in 1932. Critics disliked the paint.",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "x",
+            "kind": "factual",
+            "status": "needs_review",
+            "evidence": [],
+            "reviewNote": "",
+            "audit": [],
+            "origin": "manual",
+            "createdAt": "2025-10-09T08:55:50.000Z",
+            "updatedAt": "2025-10-09T08:55:51.500Z"
+          }
+        ]
+      },
+      "expected": ["AUDIT_STATUS_MISMATCH"]
+    },
+    {
+      "name": "review: transition event carrying codes",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 1,
+          "evidence": 1
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "The bridge opened in 1932. Critics disliked the paint.",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "The bridge opened in 1932.",
+            "kind": "factual",
+            "status": "approved",
+            "evidence": [
+              {
+                "id": "e_1",
+                "sourceId": "s_1",
+                "locator": {
+                  "start": 0,
+                  "end": 25,
+                  "text": "The bridge opened in 1932",
+                  "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+                },
+                "label": "support",
+                "note": ""
+              }
+            ],
+            "reviewNote": "",
+            "audit": [
+              {
+                "seq": 1,
+                "at": "2025-10-09T08:55:50.000Z",
+                "actor": "user",
+                "type": "created",
+                "note": ""
+              },
+              {
+                "seq": 2,
+                "at": "2025-10-09T08:55:51.500Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "draft",
+                "to": "needs_review"
+              },
+              {
+                "seq": 3,
+                "at": "2025-10-09T08:55:53.000Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "needs_review",
+                "to": "approved",
+                "codes": ["NO_SUPPORT"]
+              }
+            ],
+            "origin": "manual",
+            "createdAt": "2025-10-09T08:55:50.000Z",
+            "updatedAt": "2025-10-09T08:55:54.500Z"
+          }
+        ]
+      },
+      "expected": ["UNKNOWN_FIELD"]
+    },
+    {
+      "name": "review: refusal event carrying from",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 1,
+          "evidence": 1
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "The bridge opened in 1932. Critics disliked the paint.",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "The bridge opened in 1932.",
+            "kind": "factual",
+            "status": "approved",
+            "evidence": [
+              {
+                "id": "e_1",
+                "sourceId": "s_1",
+                "locator": {
+                  "start": 0,
+                  "end": 25,
+                  "text": "The bridge opened in 1932",
+                  "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+                },
+                "label": "support",
+                "note": ""
+              }
+            ],
+            "reviewNote": "",
+            "audit": [
+              {
+                "seq": 1,
+                "at": "2025-10-09T08:55:50.000Z",
+                "actor": "user",
+                "type": "created",
+                "note": ""
+              },
+              {
+                "seq": 2,
+                "at": "2025-10-09T08:55:51.500Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "draft",
+                "to": "needs_review"
+              },
+              {
+                "seq": 3,
+                "at": "2025-10-09T08:55:53.000Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "needs_review",
+                "to": "approved"
+              },
+              {
+                "seq": 4,
+                "at": "2025-10-09T08:56:05.000Z",
+                "actor": "user",
+                "type": "approval_refused",
+                "note": "no",
+                "codes": ["NO_SUPPORT"],
+                "from": "needs_review"
+              }
+            ],
+            "origin": "manual",
+            "createdAt": "2025-10-09T08:55:50.000Z",
+            "updatedAt": "2025-10-09T08:55:54.500Z"
+          }
+        ]
+      },
+      "expected": ["UNKNOWN_FIELD"]
+    },
+    {
+      "name": "review: claim counter zero",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 0,
+          "evidence": 1
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "The bridge opened in 1932. Critics disliked the paint.",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "The bridge opened in 1932.",
+            "kind": "factual",
+            "status": "approved",
+            "evidence": [
+              {
+                "id": "e_1",
+                "sourceId": "s_1",
+                "locator": {
+                  "start": 0,
+                  "end": 25,
+                  "text": "The bridge opened in 1932",
+                  "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+                },
+                "label": "support",
+                "note": ""
+              }
+            ],
+            "reviewNote": "",
+            "audit": [
+              {
+                "seq": 1,
+                "at": "2025-10-09T08:55:50.000Z",
+                "actor": "user",
+                "type": "created",
+                "note": ""
+              },
+              {
+                "seq": 2,
+                "at": "2025-10-09T08:55:51.500Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "draft",
+                "to": "needs_review"
+              },
+              {
+                "seq": 3,
+                "at": "2025-10-09T08:55:53.000Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "needs_review",
+                "to": "approved"
+              }
+            ],
+            "origin": "manual",
+            "createdAt": "2025-10-09T08:55:50.000Z",
+            "updatedAt": "2025-10-09T08:55:54.500Z"
+          }
+        ]
+      },
+      "expected": ["COUNTER_INVALID"]
+    },
+    {
+      "name": "review: timestamps are checked for shape only",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 1,
+          "evidence": 1
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "The bridge opened in 1932. Critics disliked the paint.",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "The bridge opened in 1932.",
+            "kind": "factual",
+            "status": "approved",
+            "evidence": [
+              {
+                "id": "e_1",
+                "sourceId": "s_1",
+                "locator": {
+                  "start": 0,
+                  "end": 25,
+                  "text": "The bridge opened in 1932",
+                  "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+                },
+                "label": "support",
+                "note": ""
+              }
+            ],
+            "reviewNote": "",
+            "audit": [
+              {
+                "seq": 1,
+                "at": "2025-10-09T08:55:50.000Z",
+                "actor": "user",
+                "type": "created",
+                "note": ""
+              },
+              {
+                "seq": 2,
+                "at": "2025-10-09T08:55:51.500Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "draft",
+                "to": "needs_review"
+              },
+              {
+                "seq": 3,
+                "at": "2025-10-09T08:55:53.000Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "needs_review",
+                "to": "approved"
+              }
+            ],
+            "origin": "manual",
+            "createdAt": "2026-02-30T00:00:00.000Z",
+            "updatedAt": "2025-10-09T08:55:54.500Z"
+          }
+        ]
+      },
+      "expected": []
+    },
+    {
+      "name": "review: 1900 is not a leap year",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 1,
+          "evidence": 1
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "The bridge opened in 1932. Critics disliked the paint.",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "1900-02-29",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "The bridge opened in 1932.",
+            "kind": "factual",
+            "status": "approved",
+            "evidence": [
+              {
+                "id": "e_1",
+                "sourceId": "s_1",
+                "locator": {
+                  "start": 0,
+                  "end": 25,
+                  "text": "The bridge opened in 1932",
+                  "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+                },
+                "label": "support",
+                "note": ""
+              }
+            ],
+            "reviewNote": "",
+            "audit": [
+              {
+                "seq": 1,
+                "at": "2025-10-09T08:55:50.000Z",
+                "actor": "user",
+                "type": "created",
+                "note": ""
+              },
+              {
+                "seq": 2,
+                "at": "2025-10-09T08:55:51.500Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "draft",
+                "to": "needs_review"
+              },
+              {
+                "seq": 3,
+                "at": "2025-10-09T08:55:53.000Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "needs_review",
+                "to": "approved"
+              }
+            ],
+            "origin": "manual",
+            "createdAt": "2025-10-09T08:55:50.000Z",
+            "updatedAt": "2025-10-09T08:55:54.500Z"
+          }
+        ]
+      },
+      "expected": ["FIELD_VALUE"]
+    },
+    {
+      "name": "review: 2000 is a leap year",
+      "value": {
+        "schema": 1,
+        "name": "Fixture workspace",
+        "counters": {
+          "source": 2,
+          "claim": 1,
+          "evidence": 1
+        },
+        "sources": [
+          {
+            "id": "s_1",
+            "title": "Source 1",
+            "author": "",
+            "date": "",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "The bridge opened in 1932. Critics disliked the paint.",
+            "contentHash": "8ecac230d7ba64e437c55e1cc12928bd43845562e6ee00d08c9ef11b2d9d8a19",
+            "createdAt": "2025-10-09T08:53:21.500Z"
+          },
+          {
+            "id": "s_2",
+            "title": "Source 2",
+            "author": "",
+            "date": "2000-02-29",
+            "provenance": "synthetic fixture",
+            "url": "",
+            "rights": "synthetic",
+            "origin": "paste",
+            "text": "Report B says the bridge opened in 1934.",
+            "contentHash": "7adce1d812d1565a75032fff5f7b6e6f53eb6886345d5725b19eda9dc2ab8b85",
+            "createdAt": "2025-10-09T08:53:23.000Z"
+          }
+        ],
+        "claims": [
+          {
+            "id": "c_1",
+            "text": "The bridge opened in 1932.",
+            "kind": "factual",
+            "status": "approved",
+            "evidence": [
+              {
+                "id": "e_1",
+                "sourceId": "s_1",
+                "locator": {
+                  "start": 0,
+                  "end": 25,
+                  "text": "The bridge opened in 1932",
+                  "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+                },
+                "label": "support",
+                "note": ""
+              }
+            ],
+            "reviewNote": "",
+            "audit": [
+              {
+                "seq": 1,
+                "at": "2025-10-09T08:55:50.000Z",
+                "actor": "user",
+                "type": "created",
+                "note": ""
+              },
+              {
+                "seq": 2,
+                "at": "2025-10-09T08:55:51.500Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "draft",
+                "to": "needs_review"
+              },
+              {
+                "seq": 3,
+                "at": "2025-10-09T08:55:53.000Z",
+                "actor": "user",
+                "type": "transition",
+                "note": "",
+                "from": "needs_review",
+                "to": "approved"
+              }
+            ],
+            "origin": "manual",
+            "createdAt": "2025-10-09T08:55:50.000Z",
+            "updatedAt": "2025-10-09T08:55:54.500Z"
+          }
+        ]
+      },
+      "expected": []
     }
   ]
 }

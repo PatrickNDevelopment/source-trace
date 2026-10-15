@@ -191,6 +191,11 @@ def parse_provider_text(raw: str) -> ProviderOutput:
         ) from exc
 
 
+def _storable(text: str) -> bool:
+    """A workspace string may not hold U+0000 or a lone surrogate (spec 03 section 1)."""
+    return "\x00" not in text and not any(0xD800 <= ord(ch) <= 0xDFFF for ch in text)
+
+
 class RateLimiter:
     def __init__(self, per_hour: int, clock: Callable[[], float] = time.monotonic) -> None:
         self._per_hour = per_hour
@@ -278,7 +283,13 @@ class AiService:
         rejected = 0
         for s in parsed.suggestions:
             src = texts.get(s.sourceId)
-            if src is None or s.kind not in KINDS or s.label not in LABELS:
+            if (
+                src is None
+                or s.kind not in KINDS
+                or s.label not in LABELS
+                or not _storable(s.claimText)
+                or not _storable(s.rationale)
+            ):
                 rejected += 1
                 continue
             built = build_locator(src, s.start, s.end)
