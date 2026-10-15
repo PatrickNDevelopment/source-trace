@@ -1,0 +1,198 @@
+{
+ "normalize": [
+  {
+   "name": "crlf",
+   "input": "a\r\nb",
+   "expected": "a\nb"
+  },
+  {
+   "name": "lone cr",
+   "input": "a\rb",
+   "expected": "a\nb"
+  },
+  {
+   "name": "lf unchanged",
+   "input": "a\nb",
+   "expected": "a\nb"
+  },
+  {
+   "name": "bom dropped",
+   "input": "\ufeffabc",
+   "expected": "abc"
+  },
+  {
+   "name": "all leading boms",
+   "input": "\ufeff\ufeffabc",
+   "expected": "abc"
+  },
+  {
+   "name": "inner bom kept",
+   "input": "a\ufeffb",
+   "expected": "a\ufeffb"
+  },
+  {
+   "name": "cr cr lf is two breaks",
+   "input": "a\r\r\nb",
+   "expected": "a\n\nb"
+  },
+  {
+   "name": "lf cr is two breaks",
+   "input": "a\n\rb",
+   "expected": "a\n\nb"
+  },
+  {
+   "name": "no nfc",
+   "input": "e\u0301",
+   "expected": "e\u0301"
+  },
+  {
+   "name": "no trim",
+   "input": "  a  ",
+   "expected": "  a  "
+  },
+  {
+   "name": "emoji kept",
+   "input": "x\ud83d\ude00y",
+   "expected": "x\ud83d\ude00y"
+  }
+ ],
+ "problems": [
+  {
+   "name": "clean",
+   "text": "Hello",
+   "expected": []
+  },
+  {
+   "name": "empty",
+   "text": "",
+   "expected": [
+    "TEXT_EMPTY"
+   ]
+  },
+  {
+   "name": "spaces only",
+   "text": " \t\n",
+   "expected": [
+    "TEXT_EMPTY"
+   ]
+  },
+  {
+   "name": "ideographic space only",
+   "text": "\u3000\u00a0",
+   "expected": [
+    "TEXT_EMPTY"
+   ]
+  },
+  {
+   "name": "zero width space is not blank",
+   "text": "\u200b",
+   "expected": []
+  },
+  {
+   "name": "cr present",
+   "text": "a\rb",
+   "expected": [
+    "TEXT_NOT_NORMALIZED"
+   ]
+  },
+  {
+   "name": "bom present",
+   "text": "\ufeffa",
+   "expected": [
+    "TEXT_NOT_NORMALIZED"
+   ]
+  },
+  {
+   "name": "nul",
+   "text": "a\u0000b",
+   "expected": [
+    "TEXT_CONTAINS_NUL"
+   ]
+  },
+  {
+   "name": "lone high surrogate",
+   "text": "a\ud800b",
+   "expected": [
+    "TEXT_INVALID_UNICODE"
+   ]
+  },
+  {
+   "name": "lone low surrogate",
+   "text": "a\udc00b",
+   "expected": [
+    "TEXT_INVALID_UNICODE"
+   ]
+  },
+  {
+   "name": "valid pair is fine",
+   "text": "\ud83d\ude00",
+   "expected": []
+  },
+  {
+   "name": "nul and cr",
+   "text": "\u0000\r",
+   "expected": [
+    "TEXT_CONTAINS_NUL",
+    "TEXT_NOT_NORMALIZED"
+   ]
+  },
+  {
+   "name": "exactly 500000",
+   "repeat": [
+    "a",
+    500000
+   ],
+   "expected": []
+  },
+  {
+   "name": "500001",
+   "repeat": [
+    "a",
+    500001
+   ],
+   "expected": [
+    "TEXT_TOO_LONG"
+   ]
+  },
+  {
+   "name": "500000 emoji",
+   "repeat": [
+    "\ud83d\ude00",
+    500000
+   ],
+   "expected": []
+  }
+ ],
+ "hash": [
+  {
+   "name": "abc",
+   "input": "abc",
+   "expected": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  },
+  {
+   "name": "empty",
+   "input": "",
+   "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "name": "crlf equals lf",
+   "input": "a\r\nb",
+   "expected": "7e18f737311b2dc3b2f269dd78396b0351f14fb66efa879f768cb23181883c78"
+  },
+  {
+   "name": "bom ignored",
+   "input": "\ufeffabc",
+   "expected": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  },
+  {
+   "name": "emoji utf8",
+   "input": "\ud83d\ude00",
+   "expected": "f0443a342c5ef54783a111b51ba56c938e474c32324d90c3a60c9c8e3a37e2d9"
+  },
+  {
+   "name": "combining differs from precomposed",
+   "input": "e\u0301",
+   "expected": "bf12767b0f2a56b2190075bae8169f656e3ce8d6357d4aff184bc6c7ea48f9f6"
+  }
+ ]
+}

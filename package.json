@@ -1,0 +1,49 @@
+{
+  "name": "source-trace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Claim and citation review: sources, exact passages, claims, a human-only approval state machine.",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite --port 5174 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4175 --strictPort",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "secrets": "node scripts/secret-scan.mjs",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run backend:lint && npm run backend:format && npm run backend:types && npm run backend:test && npm run vectors:check && npm run fuzz && npm run build && npm run secrets && npm run e2e",
+    "backend:lint": "node scripts/py.mjs -m ruff check backend contracts/tools",
+    "backend:format": "node scripts/py.mjs -m ruff format --check backend contracts/tools",
+    "backend:types": "node scripts/py.mjs -m mypy --strict backend/source_trace",
+    "backend:test": "node scripts/py.mjs -m pytest backend -q",
+    "vectors:check": "node scripts/py.mjs contracts/tools/check_vectors.py",
+    "fuzz": "node scripts/py.mjs contracts/tools/fuzz_diff.py --seed 1 --count 1500"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "8.71.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.4"
+  }
+}

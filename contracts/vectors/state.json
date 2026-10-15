@@ -1,0 +1,505 @@
+{
+ "transitions": [
+  {
+   "from": "draft",
+   "to": "draft",
+   "legal": false
+  },
+  {
+   "from": "draft",
+   "to": "needs_review",
+   "legal": true
+  },
+  {
+   "from": "draft",
+   "to": "approved",
+   "legal": false
+  },
+  {
+   "from": "draft",
+   "to": "rejected",
+   "legal": false
+  },
+  {
+   "from": "draft",
+   "to": "revise",
+   "legal": false
+  },
+  {
+   "from": "needs_review",
+   "to": "draft",
+   "legal": false
+  },
+  {
+   "from": "needs_review",
+   "to": "needs_review",
+   "legal": false
+  },
+  {
+   "from": "needs_review",
+   "to": "approved",
+   "legal": true
+  },
+  {
+   "from": "needs_review",
+   "to": "rejected",
+   "legal": true
+  },
+  {
+   "from": "needs_review",
+   "to": "revise",
+   "legal": true
+  },
+  {
+   "from": "approved",
+   "to": "draft",
+   "legal": false
+  },
+  {
+   "from": "approved",
+   "to": "needs_review",
+   "legal": false
+  },
+  {
+   "from": "approved",
+   "to": "approved",
+   "legal": false
+  },
+  {
+   "from": "approved",
+   "to": "rejected",
+   "legal": false
+  },
+  {
+   "from": "approved",
+   "to": "revise",
+   "legal": true
+  },
+  {
+   "from": "rejected",
+   "to": "draft",
+   "legal": true
+  },
+  {
+   "from": "rejected",
+   "to": "needs_review",
+   "legal": false
+  },
+  {
+   "from": "rejected",
+   "to": "approved",
+   "legal": false
+  },
+  {
+   "from": "rejected",
+   "to": "rejected",
+   "legal": false
+  },
+  {
+   "from": "rejected",
+   "to": "revise",
+   "legal": false
+  },
+  {
+   "from": "revise",
+   "to": "draft",
+   "legal": false
+  },
+  {
+   "from": "revise",
+   "to": "needs_review",
+   "legal": true
+  },
+  {
+   "from": "revise",
+   "to": "approved",
+   "legal": false
+  },
+  {
+   "from": "revise",
+   "to": "rejected",
+   "legal": false
+  },
+  {
+   "from": "revise",
+   "to": "revise",
+   "legal": false
+  }
+ ],
+ "gate": [
+  {
+   "name": "supported factual claim",
+   "claim": {
+    "text": "The bridge opened in 1932.",
+    "kind": "factual",
+    "evidence": [
+     {
+      "id": "e_1",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 0,
+       "end": 25,
+       "text": "The bridge opened in 1932",
+       "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+      },
+      "label": "support",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": []
+  },
+  {
+   "name": "blank text",
+   "claim": {
+    "text": " \u3000",
+    "kind": "factual",
+    "evidence": [
+     {
+      "id": "e_1",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 0,
+       "end": 25,
+       "text": "The bridge opened in 1932",
+       "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+      },
+      "label": "support",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "CLAIM_TEXT_EMPTY"
+   ]
+  },
+  {
+   "name": "no evidence",
+   "claim": {
+    "text": "The bridge opened in 1932.",
+    "kind": "factual",
+    "evidence": []
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "NO_EVIDENCE"
+   ]
+  },
+  {
+   "name": "only unknown evidence",
+   "claim": {
+    "text": "x",
+    "kind": "factual",
+    "evidence": [
+     {
+      "id": "e_3",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 27,
+       "end": 54,
+       "text": "Critics disliked the paint.",
+       "contextHash": "c439d332c2521bdac3269df86598331d2fee778e1c638cfe6c0599e920827141"
+      },
+      "label": "unknown",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "NO_SUPPORT"
+   ]
+  },
+  {
+   "name": "support plus contradiction, factual",
+   "claim": {
+    "text": "x",
+    "kind": "factual",
+    "evidence": [
+     {
+      "id": "e_1",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 0,
+       "end": 25,
+       "text": "The bridge opened in 1932",
+       "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+      },
+      "label": "support",
+      "note": ""
+     },
+     {
+      "id": "e_2",
+      "sourceId": "s_2",
+      "locator": {
+       "start": 0,
+       "end": 38,
+       "text": "Report B says the bridge opened in 193",
+       "contextHash": "0112b3ac85804fb58cc5e865b42af6ae8a13046cb5a40a2a1fca35cf9c6d543c"
+      },
+      "label": "contradiction",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "CONTRADICTION_PRESENT"
+   ]
+  },
+  {
+   "name": "support plus contradiction, disputed",
+   "claim": {
+    "text": "x",
+    "kind": "disputed",
+    "evidence": [
+     {
+      "id": "e_1",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 0,
+       "end": 25,
+       "text": "The bridge opened in 1932",
+       "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+      },
+      "label": "support",
+      "note": ""
+     },
+     {
+      "id": "e_2",
+      "sourceId": "s_2",
+      "locator": {
+       "start": 0,
+       "end": 38,
+       "text": "Report B says the bridge opened in 193",
+       "contextHash": "0112b3ac85804fb58cc5e865b42af6ae8a13046cb5a40a2a1fca35cf9c6d543c"
+      },
+      "label": "contradiction",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": []
+  },
+  {
+   "name": "contradiction only, disputed",
+   "claim": {
+    "text": "x",
+    "kind": "disputed",
+    "evidence": [
+     {
+      "id": "e_2",
+      "sourceId": "s_2",
+      "locator": {
+       "start": 0,
+       "end": 38,
+       "text": "Report B says the bridge opened in 193",
+       "contextHash": "0112b3ac85804fb58cc5e865b42af6ae8a13046cb5a40a2a1fca35cf9c6d543c"
+      },
+      "label": "contradiction",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "NO_SUPPORT"
+   ]
+  },
+  {
+   "name": "contradiction only, factual",
+   "claim": {
+    "text": "x",
+    "kind": "factual",
+    "evidence": [
+     {
+      "id": "e_2",
+      "sourceId": "s_2",
+      "locator": {
+       "start": 0,
+       "end": 38,
+       "text": "Report B says the bridge opened in 193",
+       "contextHash": "0112b3ac85804fb58cc5e865b42af6ae8a13046cb5a40a2a1fca35cf9c6d543c"
+      },
+      "label": "contradiction",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "CONTRADICTION_PRESENT",
+    "NO_SUPPORT"
+   ]
+  },
+  {
+   "name": "dangling source",
+   "claim": {
+    "text": "x",
+    "kind": "factual",
+    "evidence": [
+     {
+      "id": "e_4",
+      "sourceId": "s_9",
+      "locator": {
+       "start": 0,
+       "end": 5,
+       "text": "The b",
+       "contextHash": "88f340f55ab593c6aafd1625862911ce45f962f886b2a1c54d02e4422e786c10"
+      },
+      "label": "support",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "EVIDENCE_SOURCE_MISSING",
+    "NO_SUPPORT"
+   ]
+  },
+  {
+   "name": "stale locator",
+   "claim": {
+    "text": "x",
+    "kind": "factual",
+    "evidence": [
+     {
+      "id": "e_5",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 0,
+       "end": 5,
+       "text": "Wrong",
+       "contextHash": "88f340f55ab593c6aafd1625862911ce45f962f886b2a1c54d02e4422e786c10"
+      },
+      "label": "support",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "EVIDENCE_LOCATOR_INVALID",
+    "NO_SUPPORT"
+   ]
+  },
+  {
+   "name": "valid support rescues invalid sibling",
+   "claim": {
+    "text": "x",
+    "kind": "factual",
+    "evidence": [
+     {
+      "id": "e_1",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 0,
+       "end": 25,
+       "text": "The bridge opened in 1932",
+       "contextHash": "9902e3cab59be1bf58de6998738a5c404effbbf56fc5db3531319642a7e1bbf1"
+      },
+      "label": "support",
+      "note": ""
+     },
+     {
+      "id": "e_5",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 0,
+       "end": 5,
+       "text": "Wrong",
+       "contextHash": "88f340f55ab593c6aafd1625862911ce45f962f886b2a1c54d02e4422e786c10"
+      },
+      "label": "support",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "EVIDENCE_LOCATOR_INVALID"
+   ]
+  },
+  {
+   "name": "blank text and no evidence",
+   "claim": {
+    "text": "",
+    "kind": "interpretation",
+    "evidence": []
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "CLAIM_TEXT_EMPTY",
+    "NO_EVIDENCE"
+   ]
+  },
+  {
+   "name": "fictional canon needs the same gate",
+   "claim": {
+    "text": "x",
+    "kind": "fictional_canon",
+    "evidence": [
+     {
+      "id": "e_3",
+      "sourceId": "s_1",
+      "locator": {
+       "start": 27,
+       "end": 54,
+       "text": "Critics disliked the paint.",
+       "contextHash": "c439d332c2521bdac3269df86598331d2fee778e1c638cfe6c0599e920827141"
+      },
+      "label": "unknown",
+      "note": ""
+     }
+    ]
+   },
+   "sources": {
+    "s_1": "The bridge opened in 1932. Critics disliked the paint.",
+    "s_2": "Report B says the bridge opened in 1934."
+   },
+   "expected": [
+    "NO_SUPPORT"
+   ]
+  }
+ ]
+}
