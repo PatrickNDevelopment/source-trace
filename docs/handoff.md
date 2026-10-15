@@ -56,6 +56,8 @@ code.
   (re-run it from `contracts/tools`, then `npx prettier --write contracts/vectors`), then
   `npm run fuzz` with several seeds.
 - A claim holds at most 500 audit events; operations refuse to append more (`AUDIT_FULL`).
+- e2e backend databases go to the git-ignored `.e2e-data/` (wiped at the start of every run); test
+  files go to `test-results/`. Nothing is written to the system temp folder by the e2e suite.
 - `npm run e2e` rewrites `docs/screenshots`; restore them with `git checkout docs/screenshots` unless
   the UI changed.
 - The source text box is deliberately not a `readOnly` textarea: a readOnly one does not let the

@@ -1,5 +1,4 @@
-import { existsSync, mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { defineConfig } from '@playwright/test';
 
@@ -21,7 +20,14 @@ const venvPython = resolve(
 );
 const python = existsSync(venvPython) ? venvPython : isWindows ? 'python' : 'python3';
 const py = `"${python}"`;
-const dataDir = mkdtempSync(join(tmpdir(), 'source-trace-e2e-'));
+// Throwaway backend databases live in a git-ignored folder inside the repo, wiped at the start of each
+// run, so no run leaves anything behind in the system temp folder. Worker processes load this file
+// too, while the servers are running: only the main process may wipe it.
+const dataDir = resolve(process.cwd(), '.e2e-data');
+if (process.env['TEST_WORKER_INDEX'] === undefined) {
+  rmSync(dataDir, { recursive: true, force: true });
+  mkdirSync(dataDir, { recursive: true });
+}
 const origins = `http://localhost:${WEB_PORT},http://127.0.0.1:${WEB_PORT}`;
 
 function backend(port: number, tag: string, extra: Record<string, string>) {

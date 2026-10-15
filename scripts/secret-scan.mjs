@@ -6,6 +6,7 @@ import { join, relative, sep } from 'node:path';
 const root = process.cwd();
 const SKIP_DIRS = new Set([
   'node_modules',
+  '.e2e-data',
   'dist',
   '.git',
   'playwright-report',

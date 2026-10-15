@@ -1,5 +1,4 @@
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
 import {
@@ -237,7 +236,9 @@ test('workspace export imports back identically, and a crafted file is refused',
   expect(doc.schema).toBe(1);
 
   // 1. a crafted file: an approved claim with no evidence and an AI actor
-  const dir = mkdtempSync(join(tmpdir(), 'st-e2e-'));
+  // Playwright's per-test output folder (test-results/, cleared on every run), not %TEMP%.
+  const dir = test.info().outputPath('import-files');
+  mkdirSync(dir, { recursive: true });
   const bad = JSON.parse(exported);
   bad.claims[0].status = 'approved';
   bad.claims[0].evidence = [];

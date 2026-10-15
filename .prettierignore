@@ -10,3 +10,4 @@ backend/alembic/versions
 .ruff_cache
 .mypy_cache
 .pytest_cache
+.e2e-data
