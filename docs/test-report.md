@@ -1,5 +1,19 @@
 # Test report
 
+## Part 3: post-publication (2026-10-15)
+
+- First CI run on GitHub (Ubuntu, Node 24, Python 3.12, Chromium): frontend, backend (ruff, mypy,
+  pytest, golden vectors, differential fuzz) and e2e jobs all passed on the first attempt. Run:
+  https://github.com/PatrickNDevelopment/source-trace/actions/runs/38821866236
+- GitHub Pages: the first deploy failed only because Pages was not yet enabled; after enabling it
+  (source: GitHub Actions) the re-run succeeded: https://github.com/PatrickNDevelopment/source-trace/actions/runs/38821866209
+- Live check of https://patrickndevelopment.github.io/source-trace/ (Edge via Playwright): loads under `/source-trace/`; journey 2 on the live
+  site (unsupported claim refused with `NO_SUPPORT`, refusal kept after a hard refresh on a deep
+  link); the synthetic sample loads, is labelled and shows 4 claims; PDF import is disabled with an
+  explanation; every response 200; no console errors; no request to localhost or 127.0.0.1.
+- The e2e temp-folder leftover noted below was fixed before publication (commit `d7a32b9`): test
+  databases go to the git-ignored `.e2e-data/` and nothing is written to the system temp folder.
+
 ## Part 1: independent acceptance (2026-10-15)
 
 Reviewer: an independent Claude Code session that did not write the code, following a written
@@ -11,8 +25,8 @@ broken copies) was done under `%TEMP%` and deleted afterwards.
 
 ### Verdict
 
-The evidence supports **ready_for_publication_review** (G2), after the fixes listed below. Nothing
-is published, pushed or deployed. CI and the Pages workflow have still never run (no remote).
+The evidence supported publication review after the fixes listed below. At review time nothing was
+published and CI had not run; see Part 3 for what happened after publication.
 
 ### Commands, exit codes, results
 

@@ -31,21 +31,18 @@ npm run verify                                # the full gate (or scripts\verify
 
 ## What is absent
 
-- No hosted demo; CI and Pages workflows have never run (no remote).
+- The hosted demo (https://patrickndevelopment.github.io/source-trace/) is static only; the backend features run locally.
 - No live AI provider call was made (no key in this environment; by design tests never use one).
 - See docs/known-limitations.md and docs/backlog.md.
 
-## Release blockers before publication
+## Release status
 
-1. Owner review: README, screenshots, limitations, license, secrets scan, and the commit author
-   e-mail that publication would make public.
-2. Explicit owner approval to create the repository, push and enable Pages.
-3. First real CI run on Linux / Python 3.12 (action versions never exercised).
+Published on 2026-10-15 after owner review. CI and Pages passed on their first real runs; see
+Part 3 of `docs/test-report.md`.
 
 ## Next step
 
-Owner (human) review of `docs/test-report.md` Part 1 and the screenshots; nothing else is pending in
-code.
+Maintenance and the follow-ups in `docs/known-limitations.md` and `docs/backlog.md`.
 
 ## Gotchas
 

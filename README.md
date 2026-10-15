@@ -7,8 +7,8 @@ including approvals that were refused.
 
 ![SourceTrace review view on desktop](docs/screenshots/desktop-review.png)
 
-> **Status:** v0.1, built and independently tested locally. It is **not published or deployed**:
-> there is no hosted demo yet, so run it locally (below).
+> **Status:** v0.1, published. **[Try the demo](https://patrickndevelopment.github.io/source-trace/)** (static, no backend: PDF import and
+> the AI assistant are explained as unavailable there) or run it locally (below).
 > SourceTrace does **not** verify that anything is true. Its checks are heuristics, its approval gate
 > only checks review preconditions, and an optional AI assistant can only suggest drafts.
 

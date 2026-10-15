@@ -1,7 +1,7 @@
 # Known limitations
 
-- **Not deployed and not published.** There is no hosted demo. A Pages workflow exists but has not
-  been run on a remote.
+- **The hosted demo is static.** https://patrickndevelopment.github.io/source-trace/ runs entirely in the browser; PDF import, backend
+  storage and the AI assistant need the local backend.
 - **No truth verification.** Heuristic checks and the approval gate cannot establish that a claim is
   true, accurate or complete. They flag; a person decides.
 - **Heuristics are crude.** Quote and date matching is literal (after collapsing blank runs): a
@@ -23,8 +23,8 @@
   screen-reader session, no 200% zoom audit and no automated contrast audit.
 - **Browsers:** tested in Microsoft Edge (Chromium) locally and Chromium in CI. Firefox and Safari
   are untested.
-- **Platforms:** developed and fully verified on Windows 10 with Python 3.14 and Node 24. CI targets
-  Linux with Python 3.12 (not run on a remote yet).
+- **Platforms:** developed and fully verified on Windows 10 with Python 3.14 and Node 24. CI runs
+  on Linux with Python 3.12 (first run passed on 2026-10-15).
 - **PDF isolation is process-level only:** no memory limit is applied on Windows. Size, page and time
   caps still bound the work.
 - **Audit trail limit:** a claim holds at most 500 audit events (spec 03). At the limit every further
