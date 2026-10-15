@@ -29,23 +29,58 @@ ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "backend"))
 
-import builders as b  # noqa: E402
-from source_trace.engine.locator import (  # noqa: E402
+import builders as b
+from source_trace.engine.locator import (
     Locator,
     build_locator,
     content_hash,
     verify_locator,
 )
-from source_trace.engine.state import approval_blockers  # noqa: E402
-from source_trace.engine.text import normalize_text, text_problems  # noqa: E402
-from source_trace.engine.workspace import parse_workspace_json, validate_workspace  # noqa: E402
+from source_trace.engine.state import approval_blockers
+from source_trace.engine.text import normalize_text, text_problems
+from source_trace.engine.workspace import parse_workspace_json, validate_workspace
 
 HIGH, LOW = chr(0xD800), chr(0xDC00)  # lone surrogates: not valid Unicode text
 WEIRD: list[Any] = [
-    None, True, False, 0, -1, 1, 2, 7, 10**12, 2**53 + 1, 1.5, 1.0, [], {}, [1], {"a": 1}, "",
-    "x", "s_1", "c_1", "e_1", "support", "approved", "user", "ai", "draft", "2024-02-30",
-    "2024-02-29", "ftp://x", "https://example.org", "a\u0000b", "a" + HIGH + "b", "a\r\nb",
-    "﻿x", "\U0001F600", "y" * 3000, "0" * 64, "G" * 64, "2026-10-15T12:00:00.000Z",
+    None,
+    True,
+    False,
+    0,
+    -1,
+    1,
+    2,
+    7,
+    10**12,
+    2**53 + 1,
+    1.5,
+    1.0,
+    [],
+    {},
+    [1],
+    {"a": 1},
+    "",
+    "x",
+    "s_1",
+    "c_1",
+    "e_1",
+    "support",
+    "approved",
+    "user",
+    "ai",
+    "draft",
+    "2024-02-30",
+    "2024-02-29",
+    "ftp://x",
+    "https://example.org",
+    "a\u0000b",
+    "a" + HIGH + "b",
+    "a\r\nb",
+    "\ufeffx",
+    "\U0001f600",
+    "y" * 3000,
+    "0" * 64,
+    "G" * 64,
+    "2026-10-15T12:00:00.000Z",
     "2026-13-15T12:00:00.000Z",
 ]
 
@@ -55,7 +90,7 @@ def strip_lone(text: str) -> str:
 
 
 def rand_chars(rng: random.Random, n: int) -> str:
-    pool = list(b.ALPHABET) + ["\r", "\r\n", "﻿", "\u0000", HIGH, LOW, "\u0085"]
+    pool = list(b.ALPHABET) + ["\r", "\r\n", "\ufeff", "\u0000", HIGH, LOW, "\u0085"]
     return "".join(rng.choice(pool) for _ in range(n))
 
 
@@ -114,7 +149,16 @@ def semantic_mutate(rng: random.Random, doc: dict[str, Any]) -> dict[str, Any]:
         return doc
     c = rng.choice(claims)
     action = rng.choice(
-        ["status", "from_to", "label", "source_text", "kind", "drop_transition", "locator", "dupe_claim"]
+        [
+            "status",
+            "from_to",
+            "label",
+            "source_text",
+            "kind",
+            "drop_transition",
+            "locator",
+            "dupe_claim",
+        ]
     )
     transitions = [e for e in c["audit"] if e["type"] == "transition"]
     if action == "status":
@@ -169,7 +213,7 @@ def gate_case(rng: random.Random) -> dict[str, Any]:
         evs.append(ev)
     return {
         "claim": {
-            "text": rng.choice(["", " ", "　", "claim", strip_lone(rand_chars(rng, 5))]),
+            "text": rng.choice(["", " ", "\u3000", "claim", strip_lone(rand_chars(rng, 5))]),
             "kind": rng.choice(b.KINDS),
             "evidence": evs,
         },
@@ -195,7 +239,14 @@ def generate(seed: int, count: int) -> list[dict[str, Any]]:
         elif roll < 0.40:
             text = strip_lone(rand_chars(rng, rng.randint(1, 60)))
             n = len(text)
-            add("build", {"text": text, "start": rng.randint(-2, n + 2), "end": rng.randint(-2, n + 3)})
+            add(
+                "build",
+                {
+                    "text": text,
+                    "start": rng.randint(-2, n + 2),
+                    "end": rng.randint(-2, n + 3),
+                },
+            )
         elif roll < 0.52:
             text = b.norm(strip_lone(rand_chars(rng, rng.randint(1, 60)))) or "z"
             n = len(text)
@@ -228,7 +279,7 @@ def generate(seed: int, count: int) -> list[dict[str, Any]]:
             elif r < 0.25:
                 text = text.replace(":", ": NaN", 1)
             elif r < 0.35:
-                text = "﻿" + text
+                text = "\ufeff" + text
             elif r < 0.45:
                 i = rng.randrange(len(text) + 1)
                 text = text[:i] + rng.choice([",", "}", "]", " ", "\n", "\t", "1", '"']) + text[i:]
@@ -268,14 +319,21 @@ def evaluate(case: dict[str, Any]) -> Any:
             return {"ok": False, "code": r}
         return {
             "ok": True,
-            "locator": {"start": r.start, "end": r.end, "text": r.text, "contextHash": r.context_hash},
+            "locator": {
+                "start": r.start,
+                "end": r.end,
+                "text": r.text,
+                "contextHash": r.context_hash,
+            },
         }
     if op == "verify":
         d = i["locator"]
         return verify_locator(i["text"], Locator(d["start"], d["end"], d["text"], d["contextHash"]))
     if op == "gate":
         cl = i["claim"]
-        return approval_blockers(cl["text"], cl["kind"], [Ev(e) for e in cl["evidence"]], i["sources"])
+        return approval_blockers(
+            cl["text"], cl["kind"], [Ev(e) for e in cl["evidence"]], i["sources"]
+        )
     if op == "workspace":
         return validate_workspace(i)
     if op == "json":

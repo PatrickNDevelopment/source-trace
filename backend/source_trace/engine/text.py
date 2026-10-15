@@ -15,7 +15,7 @@ _BLANK: Final = frozenset(
 
 def normalize_text(raw: str) -> str:
     """Remove leading BOMs; CRLF and lone CR become LF. Idempotent."""
-    without_bom = raw.lstrip("﻿")
+    without_bom = raw.lstrip("\ufeff")
     return without_bom.replace("\r\n", "\n").replace("\r", "\n")
 
 
@@ -24,7 +24,7 @@ def cp_length(text: str) -> int:
 
 
 def has_lone_surrogate(text: str) -> bool:
-    # Python decodes valid surrogate pairs from JSON into one character, so any surrogate left is lone.
+    # JSON decoding joins valid pairs into one character, so any surrogate left over is lone.
     return any(0xD800 <= ord(ch) <= 0xDFFF for ch in text)
 
 
@@ -39,7 +39,7 @@ def text_problems(text: str) -> list[str]:
         out.add("TEXT_INVALID_UNICODE")
     if "\u0000" in text:
         out.add("TEXT_CONTAINS_NUL")
-    if "\r" in text or text.startswith("﻿"):
+    if "\r" in text or text.startswith("\ufeff"):
         out.add("TEXT_NOT_NORMALIZED")
     if len(text) > MAX_SOURCE_CODEPOINTS:
         out.add("TEXT_TOO_LONG")

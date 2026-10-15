@@ -211,7 +211,7 @@ describe('random operation sequences', () => {
     };
     const texts = [
       'alpha beta gamma delta',
-      'one 😀 two 日本語 three',
+      'one \ud83d\ude00 two 日本語 three',
       'x\r\ny\rz',
       'Quote "alpha beta" here 1999',
     ];

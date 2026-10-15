@@ -80,7 +80,7 @@ export function textProblems(text: string): string[] {
   const out = new Set<string>();
   if (hasLoneSurrogate(text)) out.add('TEXT_INVALID_UNICODE');
   if (text.includes('\u0000')) out.add('TEXT_CONTAINS_NUL');
-  if (text.includes('\r') || text.startsWith('﻿')) out.add('TEXT_NOT_NORMALIZED');
+  if (text.includes('\r') || text.startsWith('\ufeff')) out.add('TEXT_NOT_NORMALIZED');
   if (cpLength(text) > MAX_SOURCE_CODEPOINTS) out.add('TEXT_TOO_LONG');
   if (isBlank(text)) out.add('TEXT_EMPTY');
   return [...out].sort();

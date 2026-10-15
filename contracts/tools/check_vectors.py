@@ -15,15 +15,15 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from source_trace.engine.locator import (  # noqa: E402
+from source_trace.engine.locator import (
     Locator,
     build_locator,
     content_hash,
     verify_locator,
 )
-from source_trace.engine.state import approval_blockers, can_transition  # noqa: E402
-from source_trace.engine.text import normalize_text, text_problems  # noqa: E402
-from source_trace.engine.workspace import parse_workspace_json, validate_workspace  # noqa: E402
+from source_trace.engine.state import approval_blockers, can_transition
+from source_trace.engine.text import normalize_text, text_problems
+from source_trace.engine.workspace import parse_workspace_json, validate_workspace
 
 VECTORS = ROOT / "contracts" / "vectors"
 
@@ -63,9 +63,17 @@ def main() -> int:
     text = load("text.json")
     for c in text["normalize"]:
         check("normalize/" + c["name"], normalize_text(c["input"]), c["expected"])
-        check("normalize-idempotent/" + c["name"], normalize_text(c["expected"]), c["expected"])
+        check(
+            "normalize-idempotent/" + c["name"],
+            normalize_text(c["expected"]),
+            c["expected"],
+        )
     for c in text["problems"]:
-        check("problems/" + c["name"], text_problems(vector_text(c, "text")), c["expected"])
+        check(
+            "problems/" + c["name"],
+            text_problems(vector_text(c, "text")),
+            c["expected"],
+        )
     for c in text["hash"]:
         check("hash/" + c["name"], content_hash(c["input"]), c["expected"])
 
@@ -78,14 +86,24 @@ def main() -> int:
             ok = isinstance(got, Locator) and got == loc(want)
             check("build/" + c["name"], ok, True)
     for c in load("locator.json")["verify"]:
-        check("verify/" + c["name"], verify_locator(c["source"], loc(c["locator"])), c["expected"])
+        check(
+            "verify/" + c["name"],
+            verify_locator(c["source"], loc(c["locator"])),
+            c["expected"],
+        )
 
     state = load("state.json")
     for t in state["transitions"]:
-        check(f"transition/{t['from']}->{t['to']}", can_transition(t["from"], t["to"]), t["legal"])
+        check(
+            f"transition/{t['from']}->{t['to']}",
+            can_transition(t["from"], t["to"]),
+            t["legal"],
+        )
     for c in state["gate"]:
         cl = c["claim"]
-        got = approval_blockers(cl["text"], cl["kind"], [Ev(e) for e in cl["evidence"]], c["sources"])
+        got = approval_blockers(
+            cl["text"], cl["kind"], [Ev(e) for e in cl["evidence"]], c["sources"]
+        )
         check("gate/" + c["name"], got, c["expected"])
 
     for c in load("workspace.json")["cases"]:

@@ -223,10 +223,10 @@ def _check_source(c: _Check, v: Any) -> tuple[bool, dict[str, str] | None, str |
     if chash is not None and _HASH_RE.fullmatch(chash) is None:
         c.codes.add("FIELD_VALUE")
     created = _check_ts(c, o["createdAt"]) if "createdAt" in o else None
-    if text is not None and chash is not None and _HASH_RE.fullmatch(chash):
-        if content_hash(text) != chash:
-            c.codes.add("HASH_MISMATCH")
-            ok = False
+    hash_checkable = text is not None and chash is not None and _HASH_RE.fullmatch(chash)
+    if hash_checkable and text is not None and content_hash(text) != chash:
+        c.codes.add("HASH_MISMATCH")
+        ok = False
     if (
         not ok
         or sid is None
@@ -545,9 +545,10 @@ def validate_workspace(value: Any) -> list[str]:
         ):
             c.codes.add("APPROVED_FAILS_GATE")
 
-    if counters is not None:
-        if counters[0] < max_source or counters[1] < max_claim or counters[2] < max_evidence:
-            c.codes.add("COUNTER_INVALID")
+    if counters is not None and (
+        counters[0] < max_source or counters[1] < max_claim or counters[2] < max_evidence
+    ):
+        c.codes.add("COUNTER_INVALID")
     return sorted(c.codes)
 
 

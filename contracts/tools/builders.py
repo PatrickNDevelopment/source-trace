@@ -19,7 +19,13 @@ TRANSITIONS = {
     "rejected": ["draft"],
     "revise": ["needs_review"],
 }
-KINDS = ["factual", "interpretation", "disputed", "fictional_canon", "creator_inference"]
+KINDS = [
+    "factual",
+    "interpretation",
+    "disputed",
+    "fictional_canon",
+    "creator_inference",
+]
 LABELS = ["support", "contradiction", "unknown"]
 BLOCKERS = [
     "CLAIM_TEXT_EMPTY",
@@ -37,8 +43,7 @@ def sha(text: str) -> str:
 
 
 def norm(text: str) -> str:
-    if text.startswith("﻿"):
-        text = text[1:]
+    text = text.removeprefix("\ufeff")
     return text.replace("\r\n", "\n").replace("\r", "\n")
 
 
@@ -82,8 +87,14 @@ def source(n: int, text: str, *, title: str | None = None, **meta: Any) -> dict[
     return out
 
 
-def evidence(n: int, src: dict[str, Any], start: int, end: int, label: str = "support",
-             note: str = "") -> dict[str, Any]:
+def evidence(
+    n: int,
+    src: dict[str, Any],
+    start: int,
+    end: int,
+    label: str = "support",
+    note: str = "",
+) -> dict[str, Any]:
     return {
         "id": f"e_{n}",
         "sourceId": src["id"],
@@ -94,19 +105,38 @@ def evidence(n: int, src: dict[str, Any], start: int, end: int, label: str = "su
 
 
 def audit_event(seq: int, step: int, typ: str, note: str = "", **extra: Any) -> dict[str, Any]:
-    event: dict[str, Any] = {"seq": seq, "at": ts(step), "actor": "user", "type": typ, "note": note}
+    event: dict[str, Any] = {
+        "seq": seq,
+        "at": ts(step),
+        "actor": "user",
+        "type": typ,
+        "note": note,
+    }
     event.update(extra)
     return event
 
 
-def claim(n: int, text: str, kind: str, status: str, evidence_list: list[dict[str, Any]],
-          path: list[str] | None = None, step0: int = 100) -> dict[str, Any]:
+def claim(
+    n: int,
+    text: str,
+    kind: str,
+    status: str,
+    evidence_list: list[dict[str, Any]],
+    path: list[str] | None = None,
+    step0: int = 100,
+) -> dict[str, Any]:
     """A claim whose audit trail walks ``path`` (statuses after draft) and ends at ``status``."""
     events = [audit_event(1, step0, "created")]
     current = "draft"
     for target in path if path is not None else ([] if status == "draft" else [status]):
         events.append(
-            audit_event(len(events) + 1, step0 + len(events), "transition", "", **{"from": current, "to": target})
+            audit_event(
+                len(events) + 1,
+                step0 + len(events),
+                "transition",
+                "",
+                **{"from": current, "to": target},
+            )
         )
         current = target
     return {
@@ -123,8 +153,11 @@ def claim(n: int, text: str, kind: str, status: str, evidence_list: list[dict[st
     }
 
 
-def workspace(sources: list[dict[str, Any]], claims: list[dict[str, Any]],
-              name: str = "Fixture workspace") -> dict[str, Any]:
+def workspace(
+    sources: list[dict[str, Any]],
+    claims: list[dict[str, Any]],
+    name: str = "Fixture workspace",
+) -> dict[str, Any]:
     def top(prefix: str, rows: list[dict[str, Any]]) -> int:
         return max([int(r["id"].split("_")[1]) for r in rows] + [0])
 
@@ -132,7 +165,11 @@ def workspace(sources: list[dict[str, Any]], claims: list[dict[str, Any]],
     return {
         "schema": 1,
         "name": name,
-        "counters": {"source": top("s", sources), "claim": top("c", claims), "evidence": top("e", ev)},
+        "counters": {
+            "source": top("s", sources),
+            "claim": top("c", claims),
+            "evidence": top("e", ev),
+        },
         "sources": sources,
         "claims": claims,
     }
@@ -140,16 +177,31 @@ def workspace(sources: list[dict[str, Any]], claims: list[dict[str, Any]],
 
 # ---- random valid workspaces for the fuzz --------------------------------------------------
 
-ALPHABET = list(
-    "abcdefghij klmnop. ,\n\n\t  QRST 0123 -\"'“”"
-) + ["😀", "é", "é", "日", "本", "語", " ", "　", "ß", "İ", "​", "𝔘", " "]
+ALPHABET = list("abcdefghij klmnop. ,\n\n\t  QRST 0123 -\"'“”") + [
+    "\U0001f600",
+    "é",
+    "e\u0301",
+    "日",
+    "本",
+    "語",
+    "\u00a0",
+    "\u3000",
+    "ß",
+    "İ",
+    "\u200b",
+    "\U0001d518",
+    "\u2028",
+]
 
 
 def rand_text(rng: random.Random, lo: int = 3, hi: int = 120, *, bad: bool = False) -> str:
     n = rng.randint(lo, hi)
     chars = [rng.choice(ALPHABET) for _ in range(n)]
     if bad:
-        chars.insert(rng.randrange(len(chars) + 1), rng.choice(["\r\n", "\r", "﻿", "\u0000"]))
+        chars.insert(
+            rng.randrange(len(chars) + 1),
+            rng.choice(["\r\n", "\r", "\ufeff", "\u0000"]),
+        )
     return "".join(chars)
 
 
@@ -166,7 +218,9 @@ def rand_valid_workspace(rng: random.Random) -> dict[str, Any]:
             body = f"fallback text {n}"
         date = rng.choice(["", "2020-02-29", "1999-12-31", "2024-06-01"])
         url = rng.choice(["", "https://example.org/a", "http://example.org/b"])
-        sources.append(source(n, body, date=date, url=url, origin=rng.choice(["paste", "file", "pdf"])))
+        sources.append(
+            source(n, body, date=date, url=url, origin=rng.choice(["paste", "file", "pdf"]))
+        )
     claims: list[dict[str, Any]] = []
     eid = 0
     for cn in range(1, rng.randint(0, 5) + 1):
