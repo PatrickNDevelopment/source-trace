@@ -16,21 +16,21 @@ is published, pushed or deployed. CI and the Pages workflow have still never run
 
 ### Commands, exit codes, results
 
-| What                                                        | Command                                                                                           | Exit | Result                                                                                  |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------- |
-| Baseline gate before any change (`3051d79`)                 | `scripts\verify.ps1`                                                                              | 0    | ALL CHECKS PASSED: 175 unit, 45 backend, 171/171 vectors, fuzz 0 mismatches, 25 e2e     |
-| Fresh clone of the fixed commit `683b50e`, new venv         | `git clone`, `python -m venv .venv`, `pip install -r backend\requirements.lock.txt`, `verify.ps1` | 0    | ALL CHECKS PASSED: 221 unit, 51 backend, 218/218 vectors, fuzz 0 mismatches, 29 e2e     |
-| Final gate in the working copy (`683b50e`)                  | `scripts\verify.ps1`                                                                              | 0    | see "Final gate" below                                                                  |
-| Differential fuzz, extra seeds, extended generator          | `python contracts/tools/fuzz_diff.py --seed N --count 3000`, N = 1, 11, 29, 97                    | 0    | 3,003 cases each, 0 mismatches                                                          |
-| New tests against the OLD code (`3051d79` `src`, `backend`) | `npx vitest run`                                                                                  | 1    | 7 failed (Markdown fences x2, quote length, audit cap, NUL, JSON nesting x2)            |
-|                                                             | `pytest backend/tests/test_review_regressions.py` (import-free subset)                            | 1    | 5 failed (413, strict revision, Host user info, AI ids, AI NUL)                         |
-|                                                             | `python contracts/tools/check_vectors.py`                                                         | -    | 215/218 agree (3 new JSON vectors disagree)                                             |
-|                                                             | `python contracts/tools/fuzz_diff.py --seed 1 --count 1500` (extended generator)                  | 1    | 3 mismatches between the old engines (deep nesting, huge integers)                      |
-| Verify scripts fail loudly (scratch copy)                   | `verify.ps1` with the old engine and new tests                                                    | 2    | stopped at `FAILED: typecheck (exit 2)`                                                 |
-|                                                             | `sh scripts/verify.sh` with a Prettier violation in `src/engine/text.ts`                          | 1    | stopped at "format check"                                                               |
-| Live backend probes (scratch script, fake AI, port 8797)    | forged snapshots, JSON layer, Host/Origin/CORS, body caps, deadline, AI broker                    | -    | results in "Adversarial cases" below                                                    |
-| Hostile PDFs (scratch, built in `%TEMP%`)                   | 14 crafted files posted to `/api/pdf/extract`                                                     | -    | every cap held, see below; no worker process left behind                                |
-| History scan                                                | `git log --all -p` grepped for key/token patterns and e-mail addresses                            | -    | no secret; only e-mails are the commit author's own address and `noreply@anthropic.com` |
+| What                                                        | Command                                                                                           | Exit | Result                                                                                                   |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------- |
+| Baseline gate before any change (`3051d79`)                 | `scripts\verify.ps1`                                                                              | 0    | ALL CHECKS PASSED: 175 unit, 45 backend, 171/171 vectors, fuzz 0 mismatches, 25 e2e                      |
+| Fresh clone of the fixed commit `683b50e`, new venv         | `git clone`, `python -m venv .venv`, `pip install -r backend\requirements.lock.txt`, `verify.ps1` | 0    | ALL CHECKS PASSED: 221 unit, 51 backend, 218/218 vectors, fuzz 0 mismatches, 29 e2e                      |
+| Final gate in the working copy (`683b50e`)                  | `scripts\verify.ps1`                                                                              | 0    | see "Final gate" below                                                                                   |
+| Differential fuzz, extra seeds, extended generator          | `python contracts/tools/fuzz_diff.py --seed N --count 3000`, N = 1, 11, 29, 97                    | 0    | 3,003 cases each, 0 mismatches                                                                           |
+| New tests against the OLD code (`3051d79` `src`, `backend`) | `npx vitest run`                                                                                  | 1    | 7 failed (Markdown fences x2, quote length, audit cap, NUL, JSON nesting x2)                             |
+|                                                             | `pytest backend/tests/test_review_regressions.py` (import-free subset)                            | 1    | 5 failed (413, strict revision, Host user info, AI ids, AI NUL)                                          |
+|                                                             | `python contracts/tools/check_vectors.py`                                                         | -    | 215/218 agree (3 new JSON vectors disagree)                                                              |
+|                                                             | `python contracts/tools/fuzz_diff.py --seed 1 --count 1500` (extended generator)                  | 1    | 3 mismatches between the old engines (deep nesting, huge integers)                                       |
+| Verify scripts fail loudly (scratch copy)                   | `verify.ps1` with the old engine and new tests                                                    | 2    | stopped at `FAILED: typecheck (exit 2)`                                                                  |
+|                                                             | `sh scripts/verify.sh` with a Prettier violation in `src/engine/text.ts`                          | 1    | stopped at "format check"                                                                                |
+| Live backend probes (scratch script, fake AI, port 8797)    | forged snapshots, JSON layer, Host/Origin/CORS, body caps, deadline, AI broker                    | -    | results in "Adversarial cases" below                                                                     |
+| Hostile PDFs (scratch, built in `%TEMP%`)                   | 14 crafted files posted to `/api/pdf/extract`                                                     | -    | every cap held, see below; no worker process left behind                                                 |
+| History scan                                                | `git log --all -p` grepped for key/token patterns and e-mail addresses                            | -    | no secret; only e-mails are the commit author's own address and the Anthropic no-reply co-author address |
 
 ### Defects found and fixed (each with a regression test that fails on `3051d79`)
 
@@ -162,6 +162,11 @@ the run were then committed with this report), exit code 0:
 ==> browser e2e                 29 passed (1.7m)
 ALL CHECKS PASSED
 ```
+
+A re-run after the first report commit (`c5eeb74`) stopped at `FAILED: secret scan (exit 1)`: this
+report quoted an e-mail address (`docs/test-report.md:33  email address (personal data check)`). The
+address was removed and the gate re-run on the next commit; its result is in the reviewer's final
+answer and must be reproduced by the lead engineer.
 
 The one skipped Vitest case is the inert TypeScript leg of the fuzz (it runs inside `npm run fuzz`).
 The one pytest warning is Starlette's `httpx` deprecation notice.
