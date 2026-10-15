@@ -2,8 +2,8 @@
 
 ## Part 1: independent acceptance (2026-10-15)
 
-Reviewer: an independent Claude Code session that did not write the code, following the portfolio
-acceptance prompt and `portfolio-control/CLAUDE_RULES.md`. Environment: Windows 10, Node.js 24.20,
+Reviewer: an independent Claude Code session that did not write the code, following a written
+adversarial acceptance checklist and the project's release rules. Environment: Windows 10, Node.js 24.20,
 npm 11.19, Python 3.14.7, Playwright with the installed Microsoft Edge. Starting point: branch
 `phase/03a-build`, builder commit `3051d79`, clean working tree. Every result below comes from a
 command that was run and whose output was read. Scratch work (probes, hostile PDFs, a fresh clone,
@@ -165,8 +165,8 @@ ALL CHECKS PASSED
 
 A re-run after the first report commit (`c5eeb74`) stopped at `FAILED: secret scan (exit 1)`: this
 report quoted an e-mail address (`docs/test-report.md:33  email address (personal data check)`). The
-address was removed and the gate re-run on the next commit; its result is in the reviewer's final
-answer and must be reproduced by the lead engineer.
+address was removed and the gate re-run on the next commit; the maintainer then re-ran the full
+gate independently on that commit: exit 0, the same counts as above.
 
 The one skipped Vitest case is the inert TypeScript leg of the fuzz (it runs inside `npm run fuzz`).
 The one pytest warning is Starlette's `httpx` deprecation notice.

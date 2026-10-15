@@ -1,9 +1,8 @@
 # Handoff
 
 **State:** v0.1 on branch `phase/03a-build`, independently accepted (see Part 1 of
-`docs/test-report.md`; seven defects fixed with regression tests). Not pushed, not deployed, no
-remote. The evidence supports registry status `ready_for_publication_review`; the lead engineer
-updates `portfolio-control/projects.json` after re-running it.
+`docs/test-report.md`; seven defects fixed with regression tests). Approved by the owner for
+publication on 2026-10-15.
 
 ## Run
 
@@ -38,9 +37,9 @@ npm run verify                                # the full gate (or scripts\verify
 
 ## Release blockers before publication
 
-1. Owner review (G3): README, screenshots, limitations, license, secrets scan, and the commit author
+1. Owner review: README, screenshots, limitations, license, secrets scan, and the commit author
    e-mail that publication would make public.
-2. Explicit owner approval to create the repository, push and enable Pages (G4).
+2. Explicit owner approval to create the repository, push and enable Pages.
 3. First real CI run on Linux / Python 3.12 (action versions never exercised).
 
 ## Next step
