@@ -1,7 +1,7 @@
-name: Deploy local-data demo to GitHub Pages
+name: Deploy static demo to GitHub Pages
 
 # Not active until the repository is published and Pages "Source" is set to "GitHub Actions".
-# The static build is the local-data mode demo: it needs no backend and contacts no third party.
+# The static build is the static demo: it needs no backend and contacts no third party.
 on:
   push:
     branches: [main]
@@ -27,7 +27,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run build # base path /recruit-radar/ (vite.config.ts)
+      - run: npm run build # base path /source-trace/ (vite.config.ts)
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
