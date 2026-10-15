@@ -1,7 +1,9 @@
 # Handoff
 
-**State:** v0.1 built locally on branch `phase/03a-build`. Not pushed, not deployed, no remote.
-Registry status `in_progress` until an independent acceptance review passes.
+**State:** v0.1 on branch `phase/03a-build`, independently accepted (see Part 1 of
+`docs/test-report.md`; seven defects fixed with regression tests). Not pushed, not deployed, no
+remote. The evidence supports registry status `ready_for_publication_review`; the lead engineer
+updates `portfolio-control/projects.json` after re-running it.
 
 ## Run
 
@@ -25,7 +27,8 @@ npm run verify                                # the full gate (or scripts\verify
 - Backend: validated snapshots in SQLite with revisions and conflict detection, isolated PDF
   extraction, opt-in AI broker (fake provider in tests), Host/Origin/CORS/body-cap/deadline guards.
 - Shared contract (text, hash, locators, state table, gate, workspace validation) implemented in TS
-  and Python, held together by 171 golden vectors and a differential fuzz in the default gate.
+  and Python, held together by 218 golden vectors (47 hand-derived by the acceptance review) and a
+  differential fuzz in the default gate.
 
 ## What is absent
 
@@ -35,16 +38,24 @@ npm run verify                                # the full gate (or scripts\verify
 
 ## Release blockers before publication
 
-1. Independent acceptance review (adversarial, by a reviewer who did not write the code).
-2. Owner review and explicit approval to publish (separate decision).
-3. First real CI run on Linux / Python 3.12.
+1. Owner review (G3): README, screenshots, limitations, license, secrets scan, and the commit author
+   e-mail that publication would make public.
+2. Explicit owner approval to create the repository, push and enable Pages (G4).
+3. First real CI run on Linux / Python 3.12 (action versions never exercised).
+
+## Next step
+
+Owner (human) review of `docs/test-report.md` Part 1 and the screenshots; nothing else is pending in
+code.
 
 ## Gotchas
 
 - `vite.config.ts` sets `base: '/source-trace/'`; e2e runs on the production build at port 4175.
 - Ports: backend 8797 (e2e: fake AI), 8798 (e2e: AI not configured), preview 4175, dev 5174.
 - If you change the shared contract: spec, both engines, `contracts/tools/generate_vectors.py`
-  (re-run it), then `npm run fuzz` with several seeds.
+  (re-run it from `contracts/tools`, then `npx prettier --write contracts/vectors`), then
+  `npm run fuzz` with several seeds.
+- A claim holds at most 500 audit events; operations refuse to append more (`AUDIT_FULL`).
 - `npm run e2e` rewrites `docs/screenshots`; restore them with `git checkout docs/screenshots` unless
   the UI changed.
 - The source text box is deliberately not a `readOnly` textarea: a readOnly one does not let the
