@@ -7,7 +7,7 @@ import { defineConfig } from '@playwright/test';
  * two real FastAPI backends on fresh temporary SQLite databases:
  *   8797  AI provider "fake" (deterministic, never touches a network)
  *   8798  AI not configured (the disabled-provider mode)
- * Locally the installed Microsoft Edge is used (no download); CI installs Chromium.
+ * Locally the installed Microsoft Edge is used (no download); CI installs Chromium, Firefox and WebKit.
  */
 const AI_PORT = 8797;
 const NOAI_PORT = 8798;
@@ -48,6 +48,11 @@ function backend(port: number, tag: string, extra: Record<string, string>) {
   };
 }
 
+const EXTRA_BROWSERS = (process.env['PW_EXTRA_BROWSERS'] ?? '')
+  .split(',')
+  .map((b) => b.trim())
+  .filter((b): b is 'firefox' | 'webkit' => b === 'firefox' || b === 'webkit');
+
 export default defineConfig({
   testDir: 'e2e',
   fullyParallel: false,
@@ -58,10 +63,18 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: `http://localhost:${WEB_PORT}/source-trace/`,
-    channel: process.env['CI'] ? undefined : 'msedge',
     trace: 'retain-on-failure',
     acceptDownloads: true,
   },
+  projects: [
+    // Chromium is the gate everywhere (installed Edge locally, Chromium in CI). Firefox and WebKit run
+    // when PW_EXTRA_BROWSERS lists them, as the CI workflow does.
+    {
+      name: 'chromium',
+      use: { browserName: 'chromium', channel: process.env['CI'] ? undefined : 'msedge' },
+    },
+    ...EXTRA_BROWSERS.map((name) => ({ name, use: { browserName: name } })),
+  ],
   webServer: [
     backend(AI_PORT, 'ai', { SOURCE_TRACE_AI_PROVIDER: 'fake' }),
     backend(NOAI_PORT, 'noai', {}),

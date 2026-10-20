@@ -376,7 +376,8 @@ test('every form control has an accessible name and 320px layouts do not overflo
   }
 });
 
-test('screenshots: desktop light, mobile, and dark mode', async ({ page }) => {
+test('screenshots: desktop light, mobile, and dark mode', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'documentation screenshots come from Chromium');
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.getByRole('button', { name: 'Load sample data' }).click();
   await openView(page, 'Review');

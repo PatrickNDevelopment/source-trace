@@ -21,8 +21,9 @@
   passage match, not for correctness.
 - **Accessibility:** automated checks and keyboard-only selection are tested; there has been no
   screen-reader session, no 200% zoom audit and no automated contrast audit.
-- **Browsers:** tested in Microsoft Edge (Chromium) locally and Chromium in CI. Firefox and Safari
-  are untested.
+- **Browsers:** the end-to-end suite runs in Chromium, Firefox and WebKit (Safari's engine) in CI
+  and was run in all three locally on 2026-10-20 (Edge for Chromium). WebKit is not Safari itself, and
+  there has been no screen-reader session. In WebKit, as in Safari by default, Tab skips links.
 - **Platforms:** developed and fully verified on Windows 10 with Python 3.14 and Node 24. CI runs
   on Linux with Python 3.12 (first run passed on 2026-10-15).
 - **PDF isolation is process-level only:** no memory limit is applied on Windows. Size, page and time
@@ -37,3 +38,8 @@
 - **Hosted demo and the local backend:** the backend's default CORS list only allows
   `http://localhost:5174` and `http://localhost:4175`. A page served from another origin (for example a
   future GitHub Pages site) needs `SOURCE_TRACE_CORS_ORIGINS` set before it can write to the backend.
+- **Shared browser storage on the demo site.** All ten portfolio demos are served from
+  `patrickndevelopment.github.io`, so they share one browser storage quota (about 5 MB). Each app
+  uses its own `source-trace.*` keys and only reacts to changes of its own keys, but a very large workspace
+  in one demo can make saving fail in another (the app then shows its save-failed notice). A local
+  run has its own origin and is not affected.

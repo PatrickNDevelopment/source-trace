@@ -34,6 +34,11 @@ test('save to the backend, load it back, and a stale save is refused', async ({
   page,
   request,
 }) => {
+  // start from an empty backend: other browser projects share this backend in one run
+  const cleared = await request.delete(`${AI_BACKEND}/api/workspaces/default`, {
+    headers: { origin: 'http://localhost:4175' },
+  });
+  expect([204, 404]).toContain(cleared.status());
   await connect(page, AI_BACKEND);
   await addSource(page, 'Persisted', 'Text that should persist on the backend.');
   await openView(page, 'Settings');
