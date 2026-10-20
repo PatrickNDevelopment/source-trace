@@ -58,6 +58,9 @@ until you do.
 Run the whole gate (format, lint, types, unit tests, backend lint/format/types/tests, golden vectors,
 differential fuzz, production build, secret scan, end-to-end tests):
 
+The backend checks run with the `.venv` from the step above (without it, `scripts/py.mjs` falls
+back to the global `python`, which usually lacks ruff, mypy and pytest), so create it first.
+
 ```powershell
 npm run verify               # or scripts\verify.ps1 / scripts/verify.sh
 ```
